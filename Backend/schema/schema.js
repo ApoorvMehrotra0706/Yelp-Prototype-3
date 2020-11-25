@@ -20,6 +20,13 @@ const Orders = require('../models/OrdersModel');
 const OrderCart = require('../models/OrdersCart');
 const Login = require('../models/LoginModel');
 const { fetchCustomerProfile, custSignup } = require('../Customer/customerFucntionality');
+const {
+  restaurantSignup,
+  fetchRestaurantProfile,
+  insertFood,
+  updateFood,
+  deleteFood,
+} = require('../Restaurant/restaurantFunctionality');
 
 const {
   GraphQLObjectType,
@@ -27,6 +34,7 @@ const {
   GraphQLSchema,
   GraphQLID,
   GraphQLInt,
+  GraphQLFloat,
   GraphQLList,
   GraphQLNonNull,
 } = graphql;
@@ -74,7 +82,7 @@ const RestaurantType = new GraphQLObjectType({
       type: GraphQLString,
     },
     contact: {
-      type: GraphQLInt,
+      type: GraphQLString,
     },
     streetAddress: {
       type: GraphQLString,
@@ -123,6 +131,9 @@ const RestaurantType = new GraphQLObjectType({
     },
     TotalRatings: {
       type: GraphQLInt,
+    },
+    Result: {
+      type: GraphQLString,
     },
     Appetizers: {
       type: new GraphQLList(AppetizerType),
@@ -206,7 +217,7 @@ const CustomerType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Contact: {
-      type: GraphQLInt,
+      type: GraphQLString,
     },
     zip: {
       type: GraphQLInt,
@@ -231,6 +242,9 @@ const CustomerType = new GraphQLObjectType({
     },
     TotalRatings: {
       type: GraphQLInt,
+    },
+    Result: {
+      type: GraphQLString,
     },
     Orders: {
       type: new GraphQLList(OrdersType),
@@ -257,7 +271,7 @@ const AppetizerType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Price: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     Cuisine: {
       type: GraphQLString,
@@ -269,6 +283,9 @@ const AppetizerType = new GraphQLObjectType({
       type: GraphQLString,
     },
     ImageURL: {
+      type: GraphQLString,
+    },
+    Result: {
       type: GraphQLString,
     },
   }),
@@ -284,7 +301,7 @@ const BeverageType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Price: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     Cuisine: {
       type: GraphQLString,
@@ -296,6 +313,9 @@ const BeverageType = new GraphQLObjectType({
       type: GraphQLString,
     },
     ImageURL: {
+      type: GraphQLString,
+    },
+    Result: {
       type: GraphQLString,
     },
   }),
@@ -311,7 +331,7 @@ const DessertType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Price: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     Cuisine: {
       type: GraphQLString,
@@ -323,6 +343,9 @@ const DessertType = new GraphQLObjectType({
       type: GraphQLString,
     },
     ImageURL: {
+      type: GraphQLString,
+    },
+    Result: {
       type: GraphQLString,
     },
   }),
@@ -338,7 +361,7 @@ const Main_CourseType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Price: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     Cuisine: {
       type: GraphQLString,
@@ -365,7 +388,7 @@ const SaladType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Price: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     Cuisine: {
       type: GraphQLString,
@@ -377,6 +400,33 @@ const SaladType = new GraphQLObjectType({
       type: GraphQLString,
     },
     ImageURL: {
+      type: GraphQLString,
+    },
+    Result: {
+      type: GraphQLString,
+    },
+  }),
+});
+
+const FoodMenuType = new GraphQLObjectType({
+  name: 'FoodMenuType',
+  fields: () => ({
+    AppetizerName: {
+      type: new GraphQLList(AppetizerType),
+    },
+    BeverageName: {
+      type: new GraphQLList(BeverageType),
+    },
+    DessertName: {
+      type: new GraphQLList(DessertType),
+    },
+    MainCourseName: {
+      type: new GraphQLList(Main_CourseType),
+    },
+    SaladName: {
+      type: new GraphQLList(SaladType),
+    },
+    Result: {
       type: GraphQLString,
     },
   }),
@@ -473,13 +523,13 @@ const OrderCartType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Price: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     Quantity: {
       type: GraphQLInt,
     },
     TotalPrice: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     RestaurantID: {
       type: GraphQLString,
@@ -541,6 +591,30 @@ const RootQuery = new GraphQLObjectType({
         return result;
       },
     },
+    RestaurantProfile: {
+      type: RestaurantType,
+      args: {
+        id: {
+          type: GraphQLID,
+        },
+      },
+      resolve(parent, args) {
+        const result = fetchRestaurantProfile(args);
+        return result;
+      },
+    },
+    SaladsGet: {
+      type: RestaurantType,
+      args: {
+        id: {
+          type: GraphQLID,
+        },
+      },
+      resolve(parent, args) {
+        const result = fetchRestaurantProfile(args);
+        return result;
+      },
+    },
   },
 });
 
@@ -587,7 +661,7 @@ const Mutation = new GraphQLObjectType({
           type: GraphQLString,
         },
         Contact: {
-          type: GraphQLInt,
+          type: GraphQLString,
         },
         zip: {
           type: GraphQLInt,
@@ -616,7 +690,7 @@ const Mutation = new GraphQLObjectType({
           type: GraphQLID,
         },
         contact: {
-          type: GraphQLInt,
+          type: GraphQLString,
         },
         streetAddress: {
           type: GraphQLString,
@@ -667,50 +741,135 @@ const Mutation = new GraphQLObjectType({
           type: GraphQLInt,
         },
         Appetizers: {
-          type: new GraphQLList(AppetizerType),
-          resolve(parent, args) {
-            return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
-          },
+          type: GraphQLString,
         },
         Beverage: {
-          type: new GraphQLList(BeverageType),
-          resolve(parent, args) {
-            return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
-          },
+          type: GraphQLString,
         },
         Dessert: {
-          type: new GraphQLList(DessertType),
-          resolve(parent, args) {
-            return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
-          },
+          type: GraphQLString,
         },
         Main_Course: {
-          type: new GraphQLList(Main_CourseType),
-          resolve(parent, args) {
-            return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
-          },
+          type: GraphQLString,
         },
         Salad: {
-          type: new GraphQLList(SaladType),
-          resolve(parent, args) {
-            return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
-          },
+          type: GraphQLString,
         },
         Orders: {
-          type: new GraphQLList(OrdersType),
-          resolve(parent, args) {
-            return Orders.find({ RestaurantID: parent.RestaurantID }).exec();
-          },
+          type: GraphQLString,
         },
         Review: {
-          type: new GraphQLList(ReviewType),
-          resolve(parent, args) {
-            return Reviews.find({ RestaurantID: parent.RestaurantID }).exec();
-          },
+          type: GraphQLString,
         },
       },
       resolve(parent, args) {
-        return custSignup(args);
+        return restaurantSignup(args);
+      },
+    },
+    insertFood: {
+      type: FoodMenuType,
+
+      args: {
+        RestaurantID: {
+          type: GraphQLString,
+        },
+        Dishname: {
+          type: GraphQLString,
+        },
+        Main_Ingredients: {
+          type: GraphQLString,
+        },
+        Cuisine: {
+          type: GraphQLString,
+        },
+        Description: {
+          type: GraphQLString,
+        },
+        ImageURL: {
+          type: GraphQLString,
+        },
+        Price: {
+          type: GraphQLFloat,
+        },
+        category: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        // restaurant.updateOne({ RestaurantID: args.RestaurantID }, { ...args });
+        return insertFood(args);
+      },
+    },
+    updateFood: {
+      type: FoodMenuType,
+      args: {
+        ID: {
+          type: GraphQLID,
+        },
+        RestaurantID: {
+          type: GraphQLString,
+        },
+        Dishname: {
+          type: GraphQLString,
+        },
+        Main_Ingredients: {
+          type: GraphQLString,
+        },
+        Cuisine: {
+          type: GraphQLString,
+        },
+        Description: {
+          type: GraphQLString,
+        },
+        ImageURL: {
+          type: GraphQLString,
+        },
+        Price: {
+          type: GraphQLFloat,
+        },
+        category: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        // restaurant.updateOne({ RestaurantID: args.RestaurantID }, { ...args });
+        return updateFood(args);
+      },
+    },
+    deleteFood: {
+      type: FoodMenuType,
+      args: {
+        ID: {
+          type: GraphQLID,
+        },
+        RestaurantID: {
+          type: GraphQLString,
+        },
+        Dishname: {
+          type: GraphQLString,
+        },
+        Main_Ingredients: {
+          type: GraphQLString,
+        },
+        Cuisine: {
+          type: GraphQLString,
+        },
+        Description: {
+          type: GraphQLString,
+        },
+        ImageURL: {
+          type: GraphQLString,
+        },
+        Price: {
+          type: GraphQLFloat,
+        },
+        category: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        // restaurant.updateOne({ RestaurantID: args.RestaurantID }, { ...args });
+        return deleteFood(args);
       },
     },
   },
