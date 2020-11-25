@@ -7,7 +7,7 @@ const restaurantSchema = new Schema(
     name: { type: String, required: true },
     RestaurantID: { type: String, required: true },
     emailID: { type: String, required: true },
-    contact: { type: Number, min: 1000000000, max: 9999999999, required: true },
+    contact: { type: String, required: true },
     streetAddress: { type: String },
     city: { type: String },
     state: { type: String },

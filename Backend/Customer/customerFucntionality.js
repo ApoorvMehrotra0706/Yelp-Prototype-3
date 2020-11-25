@@ -55,7 +55,14 @@ const fetchCustomerProfile = async (req) => {
   return res;
 };
 
+const updateCustProfile = async (req) => {
+  const res = {};
+  await Customer.updateOne({ CustomerID: req.CustomerID }, { ...req });
+  res.Result = 'Customer Profile Updated';
+  return res;
+};
 module.exports = {
   fetchCustomerProfile,
   custSignup,
+  updateCustProfile,
 };

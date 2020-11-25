@@ -19,13 +19,20 @@ const Reviews = require('../models/ReviewsModel');
 const Orders = require('../models/OrdersModel');
 const OrderCart = require('../models/OrdersCart');
 const Login = require('../models/LoginModel');
-const { fetchCustomerProfile, custSignup } = require('../Customer/customerFucntionality');
+const {
+  fetchCustomerProfile,
+  custSignup,
+  updateCustProfile,
+} = require('../Customer/customerFucntionality');
 const {
   restaurantSignup,
   fetchRestaurantProfile,
   insertFood,
   updateFood,
   deleteFood,
+  updateRestProfile,
+  restSearchResults,
+  writeAReview,
 } = require('../Restaurant/restaurantFunctionality');
 
 const {
@@ -34,7 +41,9 @@ const {
   GraphQLSchema,
   GraphQLID,
   GraphQLInt,
+  GraphQLLong,
   GraphQLFloat,
+  GraphQLBoolean,
   GraphQLList,
   GraphQLNonNull,
 } = graphql;
@@ -112,13 +121,13 @@ const RestaurantType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Curbside_Pickup: {
-      type: graphql.GraphQLBoolean,
+      type: GraphQLBoolean,
     },
     Dine_In: {
-      type: graphql.GraphQLBoolean,
+      type: GraphQLBoolean,
     },
     Yelp_Delivery: {
-      type: graphql.GraphQLBoolean,
+      type: GraphQLBoolean,
     },
     Latitude: {
       type: GraphQLString,
@@ -138,31 +147,31 @@ const RestaurantType = new GraphQLObjectType({
     Appetizers: {
       type: new GraphQLList(AppetizerType),
       resolve(parent, args) {
-        return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
+        return Appetizer.find({ RestaurantID: parent.RestaurantID }).exec();
       },
     },
     Beverage: {
       type: new GraphQLList(BeverageType),
       resolve(parent, args) {
-        return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
+        return Beverages.find({ RestaurantID: parent.RestaurantID }).exec();
       },
     },
     Dessert: {
       type: new GraphQLList(DessertType),
       resolve(parent, args) {
-        return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
+        return Desserts.find({ RestaurantID: parent.RestaurantID }).exec();
       },
     },
     Main_Course: {
       type: new GraphQLList(Main_CourseType),
       resolve(parent, args) {
-        return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
+        return MainCourse.find({ RestaurantID: parent.RestaurantID }).exec();
       },
     },
     Salad: {
       type: new GraphQLList(SaladType),
       resolve(parent, args) {
-        return Customer.find({ RestaurantID: parent.RestaurantID }).exec();
+        return Salads.find({ RestaurantID: parent.RestaurantID }).exec();
       },
     },
     Orders: {
@@ -208,7 +217,7 @@ const CustomerType = new GraphQLObjectType({
       type: GraphQLString,
     },
     City: {
-      type: GraphQLInt,
+      type: GraphQLString,
     },
     state: {
       type: GraphQLString,
@@ -564,6 +573,9 @@ const ReviewType = new GraphQLObjectType({
     Date: {
       type: GraphQLString,
     },
+    Result: {
+      type: GraphQLString,
+    },
   }),
 });
 
@@ -595,24 +607,25 @@ const RootQuery = new GraphQLObjectType({
       type: RestaurantType,
       args: {
         id: {
-          type: GraphQLID,
+          type: GraphQLString,
         },
       },
       resolve(parent, args) {
-        const result = fetchRestaurantProfile(args);
-        return result;
+        return fetchRestaurantProfile(args);
       },
     },
-    SaladsGet: {
-      type: RestaurantType,
+    SearchRestaurant: {
+      type: new GraphQLList(RestaurantType),
       args: {
-        id: {
-          type: GraphQLID,
+        filter: {
+          type: GraphQLString,
+        },
+        searchString: {
+          type: GraphQLString,
         },
       },
       resolve(parent, args) {
-        const result = fetchRestaurantProfile(args);
-        return result;
+        return restSearchResults(args);
       },
     },
   },
@@ -870,6 +883,162 @@ const Mutation = new GraphQLObjectType({
       resolve(parent, args) {
         // restaurant.updateOne({ RestaurantID: args.RestaurantID }, { ...args });
         return deleteFood(args);
+      },
+    },
+    updateRestProfile: {
+      type: RestaurantType,
+      args: {
+        ID: {
+          type: GraphQLID,
+        },
+        name: {
+          type: GraphQLString,
+        },
+        RestaurantID: {
+          type: GraphQLID,
+        },
+        emailID: {
+          type: GraphQLString,
+        },
+        contact: {
+          type: GraphQLString,
+        },
+        streetAddress: {
+          type: GraphQLString,
+        },
+        city: {
+          type: GraphQLString,
+        },
+        state: {
+          type: GraphQLString,
+        },
+        country: {
+          type: GraphQLString,
+        },
+        zip: {
+          type: GraphQLInt,
+        },
+        ImageURL: {
+          type: GraphQLString,
+        },
+        Description: {
+          type: GraphQLString,
+        },
+        Opening_Time: {
+          type: GraphQLString,
+        },
+        Closing_Time: {
+          type: GraphQLString,
+        },
+        Curbside_Pickup: {
+          type: GraphQLBoolean,
+        },
+        Dine_In: {
+          type: GraphQLBoolean,
+        },
+        Yelp_Delivery: {
+          type: GraphQLBoolean,
+        },
+      },
+      resolve(parent, args) {
+        return updateRestProfile(args);
+      },
+    },
+    updateCustProfile: {
+      type: CustomerType,
+      args: {
+        name: {
+          type: GraphQLString,
+        },
+        CustomerID: {
+          type: GraphQLID,
+        },
+        gender: {
+          type: GraphQLString,
+        },
+        DOB: {
+          type: GraphQLInt,
+        },
+        NickName: {
+          type: GraphQLString,
+        },
+        city: {
+          type: GraphQLString,
+        },
+        contact: {
+          type: GraphQLString,
+        },
+        streetAddress: {
+          type: GraphQLString,
+        },
+        City: {
+          type: GraphQLString,
+        },
+        YelpingSince: {
+          type: GraphQLString,
+        },
+        state: {
+          type: GraphQLString,
+        },
+        country: {
+          type: GraphQLString,
+        },
+        Contact: {
+          type: GraphQLString,
+        },
+        zip: {
+          type: GraphQLInt,
+        },
+        ImageURL: {
+          type: GraphQLString,
+        },
+        Headline: {
+          type: GraphQLString,
+        },
+        Find_Me_In: {
+          type: GraphQLString,
+        },
+        Things_Customer_Love: {
+          type: GraphQLString,
+        },
+        Website: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return updateCustProfile(args);
+      },
+    },
+    writeReview: {
+      type: ReviewType,
+      args: {
+        CustomerID: {
+          type: GraphQLString,
+        },
+        CustomerName: {
+          type: GraphQLString,
+        },
+        RestaurantID: {
+          type: GraphQLString,
+        },
+        RestaurantName: {
+          type: GraphQLString,
+        },
+        ImageUrl: {
+          type: GraphQLString,
+        },
+        Ratings: {
+          type: GraphQLInt,
+        },
+        Review: {
+          type: GraphQLString,
+        },
+        Date: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return writeAReview(args);
       },
     },
   },
