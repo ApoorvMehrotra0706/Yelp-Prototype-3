@@ -441,6 +441,18 @@ const FoodMenuType = new GraphQLObjectType({
   }),
 });
 
+const RestSearchType = new GraphQLObjectType({
+  name: 'RestSearchType',
+  fields: () => ({
+    RestaurantSearchList: {
+      type: new GraphQLList(RestaurantType),
+    },
+    Result: {
+      type: GraphQLString,
+    },
+  }),
+});
+
 const CuisineType = new GraphQLObjectType({
   name: 'CuisineType',
   fields: () => ({
@@ -615,7 +627,7 @@ const RootQuery = new GraphQLObjectType({
       },
     },
     SearchRestaurant: {
-      type: new GraphQLList(RestaurantType),
+      type: RestSearchType,
       args: {
         filter: {
           type: GraphQLString,

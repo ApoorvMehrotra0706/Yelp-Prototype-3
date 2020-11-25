@@ -287,7 +287,8 @@ const restSearchResults = async (req) => {
     ]);
   }
 
-  res.Result = restaurantData;
+  res.RestaurantSearchList = restaurantData;
+  res.Result = 'Found these entries';
   return res;
 };
 
