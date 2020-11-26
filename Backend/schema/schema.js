@@ -27,7 +27,8 @@ const {
   writeAReview,
   generateOrder,
   custLogin,
-} = require('../Customer/customerFucntionality');
+  custOrderSearchResults,
+} = require('../Customer/customerFunctionality');
 const {
   restaurantSignup,
   fetchRestaurantProfile,
@@ -36,10 +37,13 @@ const {
   deleteFood,
   updateRestProfile,
   restLogin,
+  updateOrder,
+  restOrderSearchResults,
 } = require('../Restaurant/restaurantFunctionality');
 
 const {
   GraphQLObjectType,
+  GraphQLInputObjectType,
   GraphQLString,
   GraphQLSchema,
   GraphQLID,
@@ -54,6 +58,9 @@ const {
 const SignupType = new GraphQLObjectType({
   name: 'SignupType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     emailID: {
       type: GraphQLString,
     },
@@ -84,6 +91,9 @@ const SignupType = new GraphQLObjectType({
 const RestaurantType = new GraphQLObjectType({
   name: 'RestaurantType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     name: {
       type: GraphQLString,
     },
@@ -195,6 +205,9 @@ const RestaurantType = new GraphQLObjectType({
 const CustomerType = new GraphQLObjectType({
   name: 'CustomerType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     name: {
       type: GraphQLString,
     },
@@ -276,6 +289,9 @@ const CustomerType = new GraphQLObjectType({
 const AppetizerType = new GraphQLObjectType({
   name: 'AppetizerType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     RestaurantID: {
       type: GraphQLInt,
     },
@@ -306,6 +322,9 @@ const AppetizerType = new GraphQLObjectType({
 const BeverageType = new GraphQLObjectType({
   name: 'BeverageType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     RestaurantID: {
       type: GraphQLInt,
     },
@@ -336,6 +355,9 @@ const BeverageType = new GraphQLObjectType({
 const DessertType = new GraphQLObjectType({
   name: 'DessertType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     RestaurantID: {
       type: GraphQLInt,
     },
@@ -366,6 +388,9 @@ const DessertType = new GraphQLObjectType({
 const Main_CourseType = new GraphQLObjectType({
   name: 'Main_CourseType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     RestaurantID: {
       type: GraphQLInt,
     },
@@ -393,6 +418,9 @@ const Main_CourseType = new GraphQLObjectType({
 const SaladType = new GraphQLObjectType({
   name: 'SaladType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     RestaurantID: {
       type: GraphQLInt,
     },
@@ -456,6 +484,18 @@ const RestSearchType = new GraphQLObjectType({
   }),
 });
 
+const OrderSearchType = new GraphQLObjectType({
+  name: 'OrderSearchType',
+  fields: () => ({
+    OrderSearchList: {
+      type: new GraphQLList(OrdersType),
+    },
+    Result: {
+      type: GraphQLString,
+    },
+  }),
+});
+
 const CuisineType = new GraphQLObjectType({
   name: 'CuisineType',
   fields: () => ({
@@ -486,8 +526,11 @@ const GenderType = new GraphQLObjectType({
 const OrdersType = new GraphQLObjectType({
   name: 'OrdersType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     RestaurantID: {
-      type: GraphQLInt,
+      type: GraphQLString,
     },
     RestaurantName: {
       type: GraphQLString,
@@ -514,7 +557,7 @@ const OrdersType = new GraphQLObjectType({
       type: GraphQLString,
     },
     Bill: {
-      type: GraphQLInt,
+      type: GraphQLFloat,
     },
     DeliveryMode: {
       type: GraphQLString,
@@ -535,9 +578,9 @@ const OrdersType = new GraphQLObjectType({
       type: GraphQLString,
     },
     OrderCartType: {
-      type: OrderCartType,
+      type: new GraphQLList(OrderCartType),
       resolve(parent, args) {
-        return Reviews.find({ OrderID: parent._id }).exec();
+        return OrderCart.find({ OrderID: parent._id }).exec();
       },
     },
   }),
@@ -567,6 +610,9 @@ const OrderCartType = new GraphQLObjectType({
 const ReviewType = new GraphQLObjectType({
   name: 'ReviewType',
   fields: () => ({
+    _id: {
+      type: GraphQLString,
+    },
     CustomerID: {
       type: GraphQLString,
     },
@@ -601,6 +647,78 @@ const StateType = new GraphQLObjectType({
   name: 'StateType',
   fields: () => ({
     StateName: {
+      type: GraphQLString,
+    },
+  }),
+});
+
+const OrderInputType = new GraphQLInputObjectType({
+  name: 'OrderInputType',
+  fields: () => ({
+    RestaurantID: {
+      type: GraphQLString,
+    },
+    RestaurantName: {
+      type: GraphQLString,
+    },
+    CustomerID: {
+      type: GraphQLString,
+    },
+    CustomerName: {
+      type: GraphQLString,
+    },
+    ImageURL: {
+      type: GraphQLString,
+    },
+    CustomerGender: {
+      type: GraphQLString,
+    },
+    CustomerContact: {
+      type: GraphQLString,
+    },
+    CustomerYelpingSince: {
+      type: GraphQLString,
+    },
+    Date: {
+      type: GraphQLString,
+    },
+    Bill: {
+      type: GraphQLFloat,
+    },
+    DeliveryMode: {
+      type: GraphQLString,
+    },
+    StatusID: {
+      type: GraphQLFloat,
+    },
+    Status: {
+      type: GraphQLString,
+    },
+    State: {
+      type: GraphQLString,
+    },
+    Address: {
+      type: GraphQLString,
+    },
+  }),
+});
+
+const OrderCartInputType = new GraphQLInputObjectType({
+  name: 'OrderCartInputType',
+  fields: () => ({
+    Dishname: {
+      type: GraphQLString,
+    },
+    Price: {
+      type: GraphQLFloat,
+    },
+    Quantity: {
+      type: GraphQLInt,
+    },
+    TotalPrice: {
+      type: GraphQLFloat,
+    },
+    RestaurantID: {
       type: GraphQLString,
     },
   }),
@@ -644,6 +762,52 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return restSearchResults(args);
+      },
+    },
+    RestSearchOrderFilter: {
+      type: OrderSearchType,
+      args: {
+        RestaurantID: {
+          type: GraphQLString,
+        },
+        filter1: {
+          // DeliveryMode
+          type: GraphQLString,
+        },
+        filter2: {
+          // Status
+          type: GraphQLString,
+        },
+        sortOrder: {
+          // Sorting Order
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return restOrderSearchResults(args);
+      },
+    },
+    CustSearchOrderFilter: {
+      type: OrderSearchType,
+      args: {
+        CustomerID: {
+          type: GraphQLString,
+        },
+        filter1: {
+          // DeliveryMode
+          type: GraphQLString,
+        },
+        filter2: {
+          // Status
+          type: GraphQLString,
+        },
+        sortOrder: {
+          // Sorting Order
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return custOrderSearchResults(args);
       },
     },
   },
@@ -1091,7 +1255,7 @@ const Mutation = new GraphQLObjectType({
       type: OrdersType,
       args: {
         RestaurantID: {
-          type: GraphQLInt,
+          type: GraphQLString,
         },
         RestaurantName: {
           type: GraphQLString,
@@ -1118,7 +1282,7 @@ const Mutation = new GraphQLObjectType({
           type: GraphQLString,
         },
         Bill: {
-          type: GraphQLInt,
+          type: GraphQLFloat,
         },
         DeliveryMode: {
           type: GraphQLString,
@@ -1135,12 +1299,32 @@ const Mutation = new GraphQLObjectType({
         Address: {
           type: GraphQLString,
         },
-        // OrderCartType: {
-        //   type: GraphQLList(OrderCartType),
-        // },
+        OrderCartType: {
+          type: new GraphQLList(OrderCartInputType),
+        },
       },
       resolve(parent, args) {
         return generateOrder(args);
+      },
+    },
+    updateOrder: {
+      type: OrdersType,
+      args: {
+        _id: {
+          type: GraphQLString,
+        },
+        StatusID: {
+          type: GraphQLInt,
+        },
+        Status: {
+          type: GraphQLString,
+        },
+        State: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return updateOrder(args);
       },
     },
   },

@@ -10,6 +10,8 @@ const MainCourse = require('../models/Main_Course');
 const Salads = require('../models/Salads');
 const Desserts = require('../models/Desserts');
 const Review = require('../models/ReviewsModel');
+const Orders = require('../models/OrdersModel');
+const OrderCart = require('../models/OrdersCart');
 
 const geofinder = geocoder({
   key: 'AIzaSyDHRJvSWfXNenjs51fuPKCvOODQKm2AhQY',
@@ -166,6 +168,35 @@ const updateRestProfile = async (req) => {
   return res;
 };
 
+const updateOrder = async (req) => {
+  const res = {};
+  const result = await Orders.updateOne({ _id: req._id }, { ...req });
+  res.Result = 'Updated Order Status';
+  return res;
+};
+
+const restOrderSearchResults = async (req) => {
+  const res = {};
+  let orderDetails = [];
+  if (req.filter1 !== 'All') {
+    orderDetails = await Orders.find({
+      RestaurantID: req.RestaurantID,
+      DeliveryMode: req.filter1,
+      Status: req.filter2,
+    })
+      .sort({ Date: req.sortOrder })
+      .exec();
+    res.OrderSearchList = orderDetails;
+  } else {
+    // eslint-disable-next-line no-unused-vars
+    orderDetails = await Orders.find({ RestaurantID: req.RestaurantID })
+      .sort({ Date: req.sortOrder })
+      .exec();
+    res.OrderSearchList = orderDetails;
+  }
+  return res;
+};
+
 module.exports = {
   restaurantSignup,
   restLogin,
@@ -174,4 +205,6 @@ module.exports = {
   updateFood,
   deleteFood,
   updateRestProfile,
+  updateOrder,
+  restOrderSearchResults,
 };

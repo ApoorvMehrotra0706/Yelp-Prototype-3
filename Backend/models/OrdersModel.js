@@ -42,7 +42,7 @@ const ordersSchema = new Schema(
       required: true,
       enum: ['New', 'Delivered', 'Canceled'],
     },
-    Orders: [
+    OrderCartType: [
       // Bill
       {
         Dishname: { type: String, required: true },
@@ -50,6 +50,7 @@ const ordersSchema = new Schema(
         Quantity: { type: Number, required: true },
         TotalPrice: { type: Number, required: true },
         RestaurantID: { type: String, required: true },
+        OrderID: { type: String },
       },
     ],
     Address: { type: String },
