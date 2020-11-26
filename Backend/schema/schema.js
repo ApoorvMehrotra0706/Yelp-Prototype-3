@@ -23,6 +23,10 @@ const {
   fetchCustomerProfile,
   custSignup,
   updateCustProfile,
+  restSearchResults,
+  writeAReview,
+  generateOrder,
+  custLogin,
 } = require('../Customer/customerFucntionality');
 const {
   restaurantSignup,
@@ -31,8 +35,7 @@ const {
   updateFood,
   deleteFood,
   updateRestProfile,
-  restSearchResults,
-  writeAReview,
+  restLogin,
 } = require('../Restaurant/restaurantFunctionality');
 
 const {
@@ -528,7 +531,10 @@ const OrdersType = new GraphQLObjectType({
     Address: {
       type: GraphQLString,
     },
-    OrderCart: {
+    Result: {
+      type: GraphQLString,
+    },
+    OrderCartType: {
       type: OrderCartType,
       resolve(parent, args) {
         return Reviews.find({ OrderID: parent._id }).exec();
@@ -791,6 +797,34 @@ const Mutation = new GraphQLObjectType({
         return restaurantSignup(args);
       },
     },
+    custLogin: {
+      type: SignupType,
+      args: {
+        emailID: {
+          type: GraphQLString,
+        },
+        password: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return custLogin(args);
+      },
+    },
+    restLogin: {
+      type: SignupType,
+      args: {
+        emailID: {
+          type: GraphQLString,
+        },
+        password: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return restLogin(args);
+      },
+    },
     insertFood: {
       type: FoodMenuType,
 
@@ -1051,6 +1085,62 @@ const Mutation = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return writeAReview(args);
+      },
+    },
+    generateOrder: {
+      type: OrdersType,
+      args: {
+        RestaurantID: {
+          type: GraphQLInt,
+        },
+        RestaurantName: {
+          type: GraphQLString,
+        },
+        CustomerID: {
+          type: GraphQLString,
+        },
+        CustomerName: {
+          type: GraphQLString,
+        },
+        ImageURL: {
+          type: GraphQLString,
+        },
+        CustomerGender: {
+          type: GraphQLString,
+        },
+        CustomerContact: {
+          type: GraphQLString,
+        },
+        CustomerYelpingSince: {
+          type: GraphQLString,
+        },
+        Date: {
+          type: GraphQLString,
+        },
+        Bill: {
+          type: GraphQLInt,
+        },
+        DeliveryMode: {
+          type: GraphQLString,
+        },
+        StatusID: {
+          type: GraphQLInt,
+        },
+        Status: {
+          type: GraphQLString,
+        },
+        State: {
+          type: GraphQLString,
+        },
+        Address: {
+          type: GraphQLString,
+        },
+        // OrderCartType: {
+        //   type: GraphQLList(OrderCartType),
+        // },
+      },
+      resolve(parent, args) {
+        return generateOrder(args);
       },
     },
   },

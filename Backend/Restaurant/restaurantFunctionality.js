@@ -49,6 +49,29 @@ const restaurantSignup = async (req) => {
   return res;
 };
 
+const restLogin = async (req) => {
+  const res = {};
+  res.Result = 'Login successful';
+  // eslint-disable-next-line consistent-return
+  await Login.findOne({ emailID: req.emailID, Role: 'Restaurant' }, async (error, user) => {
+    if (error) {
+      res.Result = 'ID not found';
+      return res;
+    }
+    if (user) {
+      if (await bcrypt.compare(req.password, user.Password)) {
+        res.Result = 'Login successful';
+        return res;
+        // eslint-disable-next-line no-else-return
+      } else {
+        res.Result = 'Invalid credentails';
+        return res;
+      }
+    }
+  });
+  return res;
+};
+
 const fetchRestaurantProfile = async (req) => {
   let res = null;
   const RestaurantID = req.id;
@@ -143,182 +166,12 @@ const updateRestProfile = async (req) => {
   return res;
 };
 
-const restSearchResults = async (req) => {
-  const { filter, searchString } = req;
-  let restaurantData = [];
-  const res = {};
-  if (filter === '1') {
-    restaurantData = await Restaurant.find({
-      name: { $regex: `${searchString}`, $options: 'i' },
-    });
-  } else if (filter === '2') {
-    const appetizerRestID = await Appetizer.find(
-      {
-        Dishname: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const beveragesRestID = await Beverage.find(
-      {
-        Dishname: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const mainCourseRestID = await MainCourse.find(
-      {
-        Dishname: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const dessertRestID = await Desserts.find(
-      {
-        Dishname: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const saladRestID = await Salads.find(
-      {
-        Dishname: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const apptizerRestaurantID = appetizerRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const beverageRestaurantID = beveragesRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const mainCourdeRestaurantID = mainCourseRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const saladsRestaurantID = saladRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const dessertsRestaurantID = dessertRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-
-    restaurantData = await Restaurant.find({
-      RestaurantID: {
-        $in: [
-          ...apptizerRestaurantID,
-          ...beverageRestaurantID,
-          ...mainCourdeRestaurantID,
-          ...saladsRestaurantID,
-          ...dessertsRestaurantID,
-        ],
-      },
-    });
-  } else if (filter === '3') {
-    const appetizerRestID = await Appetizer.find(
-      {
-        Cuisine: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const beveragesRestID = await Beverage.find(
-      {
-        Cuisine: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const mainCourseRestID = await MainCourse.find(
-      {
-        Cuisine: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const dessertRestID = await Desserts.find(
-      {
-        Cuisine: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const saladRestID = await Salads.find(
-      {
-        Cuisine: { $regex: `${searchString}`, $options: 'i' },
-      },
-      { _id: 0, RestaurantID: 1 }
-    );
-    const apptizerRestaurantID = appetizerRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const beverageRestaurantID = beveragesRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const mainCourdeRestaurantID = mainCourseRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const saladsRestaurantID = saladRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-    const dessertsRestaurantID = dessertRestID.map((restID) => {
-      return restID.RestaurantID;
-    });
-
-    restaurantData = await Restaurant.find({
-      RestaurantID: {
-        $in: [
-          ...apptizerRestaurantID,
-          ...beverageRestaurantID,
-          ...mainCourdeRestaurantID,
-          ...saladsRestaurantID,
-          ...dessertsRestaurantID,
-        ],
-      },
-    });
-  } else {
-    restaurantData = await Restaurant.aggregate([
-      {
-        $addFields: {
-          restLocation: {
-            $concat: ['$state', ', ', '$city', ', ', '$streetAddress'],
-          },
-        },
-      },
-      {
-        $match: {
-          restLocation: {
-            $regex: `${searchString}`,
-            $options: 'i',
-          },
-        },
-      },
-    ]);
-  }
-
-  res.RestaurantSearchList = restaurantData;
-  res.Result = 'Found these entries';
-  return res;
-};
-
-const writeAReview = async (req) => {
-  const res = {};
-  const review = new Review({ ...req });
-  // eslint-disable-next-line no-unused-vars
-  await review.save();
-  await Restaurant.findOne({ RestaurantID: req.RestaurantID }, async (error, result) => {
-    const totalReviewCount = Number(result.TotalReviewCount);
-    const totalRatings = result.TotalRatings;
-    await Restaurant.updateOne(
-      { RestaurantID: req.RestaurantID },
-      {
-        TotalReviewCount: totalReviewCount + 1,
-        TotalRatings: totalRatings + Number(req.Ratings),
-      }
-    );
-  });
-  res.Result = 'Review submitted';
-  return res;
-};
-
 module.exports = {
   restaurantSignup,
+  restLogin,
   fetchRestaurantProfile,
   insertFood,
   updateFood,
   deleteFood,
   updateRestProfile,
-  restSearchResults,
-  writeAReview,
 };
