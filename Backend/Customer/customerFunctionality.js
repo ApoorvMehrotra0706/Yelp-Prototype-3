@@ -48,23 +48,21 @@ const custSignup = async (req) => {
 const custLogin = async (req) => {
   const res = {};
   res.Result = 'Login successful';
-  // eslint-disable-next-line consistent-return
-  await Login.findOne({ emailID: req.emailID, Role: 'Customer' }, async (error, user) => {
-    if (error) {
-      res.Result = 'ID not found';
-      return res;
+
+  const user = await Login.findOne({ emailID: req.emailID, Role: 'Customer' });
+  if (user) {
+    if (await bcrypt.compare(req.password, user.Password)) {
+      res.Result = 'Login successful';
+      // eslint-disable-next-line no-underscore-dangle
+      res._id = user._id;
+      res.emailID = user.emailID;
+      res.Role = user.Role;
+    } else {
+      res.Result = 'Invalid credentails';
     }
-    if (user) {
-      if (await bcrypt.compare(req.password, user.Password)) {
-        res.Result = 'Login successful';
-        return res;
-        // eslint-disable-next-line no-else-return
-      } else {
-        res.Result = 'Invalid credentails';
-        return res;
-      }
-    }
-  });
+  } else {
+    res.Result = 'ID not found';
+  }
   return res;
 };
 

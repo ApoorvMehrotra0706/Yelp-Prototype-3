@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import moment from 'moment';
 import { graphql, Query, withApollo } from 'react-apollo';
 import { flowRight as compose } from 'lodash';
-import { staticDataQuery } from '../../query/query';
+import { staticDataQuery, customerProfileQuery } from '../../query/query';
 
 // create the Navbar Component
 class Navbar extends Component {
@@ -53,46 +53,46 @@ class Navbar extends Component {
       this.props.updateStaticDataInfo(payload);
 
       // Loading customer Profile
-      if (localStorage.getItem('token') && localStorage.getItem('role') === 'Customer') {
-        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-        axios
-          .get(
-            serverUrl + 'customer/getCustomerCompleteProfile',
-
-            { params: { CustomerID: localStorage.getItem('user_id') }, withCredentials: true }
-          )
+      if (localStorage.getItem('role') === 'Customer') {
+        this.props.client
+          .query({
+            query: customerProfileQuery,
+            variables: {
+              id: localStorage.getItem('CustomerID'),
+            },
+          })
           .then((response) => {
-            console.log(response.data);
-            let DOB = moment.utc(response.data.DOB);
+            console.log(response.data.CustomerProfile);
+            let DOB = moment.utc(response.data.CustomerProfile.DOB);
             DOB = DOB.format('YYYY-MM-DD');
-            localStorage.setItem('Name', response.data.name);
+            localStorage.setItem('Name', response.data.CustomerProfile.name);
             let payload = {
-              Name: response.data.name,
-              NickName: response.data.NickName,
+              Name: response.data.CustomerProfile.name,
+              NickName: response.data.CustomerProfile.NickName,
               DOB: DOB,
-              City: response.data.City,
-              State: response.data.state,
-              Address: response.data.City.concat(', ').concat(response.data.state),
-              Gender: response.data.gender,
-              streetAddress: response.data.streetAddress,
-              Country: response.data.country,
-              zip: response.data.zip,
-              Headline: response.data.Headline,
-              Contact: response.data.contact,
-              ILove: response.data.Things_Customer_Love,
-              Find_Me_In: response.data.Find_Me_In,
-              YelpingSince: response.data.YelpingSince,
-              Website: response.data.Website,
-              ImageURL: response.data.ImageURL,
-              Events: response.data.Events,
-              FollowingIDs: response.data.FollowingCustomerIDs,
+              City: response.data.CustomerProfile.city,
+              State: response.data.CustomerProfile.state,
+              Address: response.data.CustomerProfile.City.concat(', ').concat(
+                response.data.CustomerProfile.state
+              ),
+              Gender: response.data.CustomerProfile.gender,
+              streetAddress: response.data.CustomerProfile.streetAddress,
+              Country: response.data.CustomerProfile.country,
+              zip: response.data.CustomerProfile.zip,
+              Headline: response.data.CustomerProfile.Headline,
+              Contact: response.data.CustomerProfile.contact,
+              ILove: response.data.CustomerProfile.Things_Customer_Love,
+              Find_Me_In: response.data.CustomerProfile.Find_Me_In,
+              YelpingSince: response.data.CustomerProfile.YelpingSince,
+              Website: response.data.CustomerProfile.Website,
+              ImageURL: response.data.CustomerProfile.ImageURL,
             };
             this.props.updateCustomerProfile(payload);
             payload = {
-              Contact: response.data.contact,
+              Contact: response.data.CustomerProfile.contact,
               EmailID: localStorage.getItem('username'),
               NewEmailID: localStorage.getItem('username'),
-              NewContact: response.data.contact,
+              NewContact: response.data.CustomerProfile.contact,
             };
             this.props.updateCustomerContactInfo(payload);
           });
@@ -103,7 +103,6 @@ class Navbar extends Component {
   // handle logout to destroy the cookie
   handleLogout = () => {
     const data = {
-      token: localStorage.getItem('token'),
       role: localStorage.getItem('role'),
     };
     let url = '';
@@ -150,8 +149,8 @@ class Navbar extends Component {
   render() {
     // if Token is set render Logout Button
     let navLogin = null;
-    if (localStorage.getItem('token')) {
-      console.log('Able to read token');
+    if (localStorage.getItem('role')) {
+      console.log('Able to read role');
       navLogin = (
         <ul class="nav navbar-nav navbar-right">
           <li>
@@ -163,7 +162,7 @@ class Navbar extends Component {
       );
     } else {
       // Else display login button
-      console.log('Not Able to read token');
+      console.log('Not Able to read role');
       navLogin = (
         <ul class="nav navbar-nav navbar-right">
           <li>
@@ -190,11 +189,11 @@ class Navbar extends Component {
       );
     }
     let redirectVar = null;
-    if (localStorage.getItem('token') && this.props.location.pathname === '/login') {
+    if (localStorage.getItem('role') && this.props.location.pathname === '/login') {
       redirectVar = <Redirect to="/home" />;
     }
 
-    if (!localStorage.getItem('token')) {
+    if (localStorage.getItem('role') === 'Restaurant') {
       if (this.props.location.pathname === '/RestaurantList') {
         redirectVar = <Redirect to="/RestaurantList" />;
       } else if (this.props.location.pathname === '/RestaurantPage') {
@@ -205,7 +204,7 @@ class Navbar extends Component {
     }
 
     let options = null;
-    if (!localStorage.getItem('token')) {
+    if (!localStorage.getItem('role')) {
       options = (
         <ul class="nav navbar-nav">
           <li class={this.props.location.pathname === '/search' && 'active'}>
@@ -213,7 +212,7 @@ class Navbar extends Component {
           </li>
         </ul>
       );
-    } else if (localStorage.getItem('token') && localStorage.getItem('role') === 'Restaurant') {
+    } else if (localStorage.getItem('role') === 'Restaurant') {
       options = (
         <ul class="nav navbar-nav">
           <li class={this.props.location.pathname === '/restaurantProfile' && 'active'}>
@@ -236,7 +235,7 @@ class Navbar extends Component {
           </li>
         </ul>
       );
-    } else if (localStorage.getItem('token') && localStorage.getItem('role') === 'Customer') {
+    } else if (localStorage.getItem('role') === 'Customer') {
       options = (
         <ul class="nav navbar-nav">
           <li class={this.props.location.pathname === '/customerProfile' && 'active'}>
@@ -256,12 +255,6 @@ class Navbar extends Component {
           </li>
           <li class={this.props.location.pathname === '/orderHistory' && 'active'}>
             <Link to="/orderHistory">Order History</Link>
-          </li>
-          <li class={this.props.location.pathname === '/users' && 'active'}>
-            <Link to="/users">Yelp Users</Link>
-          </li>
-          <li class={this.props.location.pathname === '/messages' && 'active'}>
-            <Link to="/messages">Message</Link>
           </li>
         </ul>
       );
@@ -331,5 +324,6 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
   withApollo,
   graphql(staticDataQuery, { name: 'staticDataQuery' }),
+  graphql(customerProfileQuery, { name: 'customerProfileQuery' }),
   connect(null, mapDispatchToProps)
 )(Navbar);

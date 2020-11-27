@@ -7,20 +7,19 @@ import axios from 'axios';
 import serverUrl from '../../config';
 import { updateSnackbarData } from '../../reducer/action-types';
 import { connect } from 'react-redux';
-import SnackBar from '../SharedComponents/Snackbar';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { updateCustProfile } from '../../mutation/mutation';
 
 class UpdateProfile extends Component {
   constructor(props) {
     super(props);
     this.state = {
       errors: { zipError: '', dateError: '' },
-      // genders: [],
-      // Countries: [],
-      // States: [],
+
       uploadedPic: '',
       Profile: {
         First_Name: '',
-        // Last_Name: '',
         Nick_Name: '',
         Gender: '',
         Date_Of_Birth: '',
@@ -37,125 +36,61 @@ class UpdateProfile extends Component {
       },
     };
   }
-  componentWillMount() {
-    // console.log('inside Signup');
-    // axios
-    //   .get(serverUrl + 'customer/fetchCustProfileData', {
-    //     withCredentials: true,
-    //   })
-    //   .then((response) => {
-    //     console.log(response.data);
-    //     const Profile = {
-    //       First_Name: response.data[0][0].Name,
-    //       // Last_Name: response.data[0][0].Last_Name,
-    //       Nick_Name: response.data[0][0].NickName,
-    //       Gender: response.data[0][0].GenderID,
-    //       // Date_Of_Birth: new Date(response.data[0][0].Date_Of_Birth),
-    //       Date_Of_Birth: Moment(response.data[0][0].DOB).format('YYYY-MM-DD'),
-    //       Country_ID: response.data[0][0].Country,
-    //       State_ID: response.data[0][0].State,
-    //       City: response.data[0][0].City,
-    //       Zip: response.data[0][0].Zip_Code,
-    //       Street: response.data[0][0].Street_Address,
-    //       Headline: response.data[0][0].Headline,
-    //       I_Love: response.data[0][0].Things_Customer_Love,
-    //       Find_Me_In: response.data[0][0].Find_Me_In,
-    //       Website: response.data[0][0].Website,
-    //       ImageUrl: response.data[0][0].ImageURL,
-    //     };
-    //     let allCountries = response.data[1].map((country) => {
-    //       return { key: country.CountryID, value: country.Country_Name };
-    //     });
-    //     let allStates = response.data[2].map((state) => {
-    //       return { key: state.StateID, value: state.State_Name };
-    //     });
-    //     let allGenders = response.data[3].map((gender) => {
-    //       return { key: gender.GenderID, value: gender.GenderName };
-    //     });
-
-    //     this.setState({
-    //       genders: this.state.genders.concat(allGenders),
-    //       Countries: this.state.Countries.concat(allCountries),
-    //       States: this.state.States.concat(allStates),
-    //       Profile,
-    //     });
-    //   });
-  }
+  componentWillMount() {}
 
   onFNameChangeHandler = (e) => {
-    // this.setState({
-    //   Profile: { ...this.state.Profile, ...{ First_Name: e.target.value } },
-    // });
     let payload = {
       Name: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
 
   onNickNameChangeHandler = (e) => {
-    // this.setState({
-    //   Profile: { ...this.state.Profile, ...{ Nick_Name: e.target.value } },
-    // });
     let payload = {
       NickName: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onChangeHandlerGender = (e) => {
-    // this.setState({
-    //   Profile: { ...this.state.Profile, ...{ Gender: e.target.value } },
-    // });
     let payload = {
       Gender: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onHeadlineChangeHandler = (e) => {
-    // this.setState({
-    //   Profile: { ...this.state.Profile, ...{ Headline: e.target.value } },
-    // });
     let payload = {
       Headline: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onLoveChangeHandler = (e) => {
-    // this.setState({
-    //   Profile: { ...this.state.Profile, ...{ I_Love: e.target.value } },
-    // });
     let payload = {
       ILove: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onFMIChangeHandler = (e) => {
     let payload = {
       Find_Me_In: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onWebsiteChangeHandler = (e) => {
-    // this.setState({
-    //   Profile: { ...this.state.Profile, ...{ Website: e.target.value } },
-    // });
     let payload = {
       Website: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onChangeHandlerCountry = (e) => {
     let payload = {
       Country: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onChangeHandlerState = (e) => {
-    // this.setState({
-    //   Profile: { ...this.state.Profile, ...{ State_ID: e.target.value } },
-    // });
     let payload = {
       State: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onChangeHandlerZipCode = (e) => {
@@ -165,83 +100,41 @@ class UpdateProfile extends Component {
       });
     } else {
       this.setState({
-        // Profile: { ...this.state.Profile, ...{ Zip: e.target.value } },
-
         errors: { ...this.state.errors, ...{ zipError: '' } },
       });
       let payload = {
         zip: e.target.value,
-      }
+      };
       this.props.updateCustomerProfile(payload);
     }
   };
   onChangeHandlerCity = (e) => {
     let payload = {
       City: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onChangeHandlerStreet = (e) => {
     let payload = {
       streetAddress: e.target.value,
-    }
+    };
     this.props.updateCustomerProfile(payload);
   };
   onChangeDate = (e) => {
-    // let errors = {};
     const today = new Date();
     const inputDate = new Date(e.target.value);
     if (today <= inputDate) {
-      //errors['dateError'] = '  Cannot select future Date!';
       this.setState({
         errors: { ...this.state.errors, ...{ dateError: '  Cannot select future Date !' } },
       });
     } else {
       this.setState({
-        // Profile: { ...this.state.Profile, ...{ Date_Of_Birth: e.target.value } },
-
         errors: { ...this.state.errors, ...{ dateError: '' } },
       });
       let payload = {
         DOB: e.target.value,
-      }
+      };
       this.props.updateCustomerProfile(payload);
-    }
-  };
-
-  onChangeFileHandler = (event) => {
-    if (event.target.files.length === 1) {
-      event.preventDefault();
-      let formData = new FormData();
-      formData.append('file', event.target.files[0], event.target.files[0].name);
-      axios({
-        method: 'post',
-        url: serverUrl + 'customer/uploadCustomerProfilePic',
-        data: formData,
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-        .then((response) => {
-          console.log('Status Code : ', response.status);
-          if (parseInt(response.status) === 200) {
-            console.log('Product Saved');
-            let payload = {
-              ImageURL: response.data,
-            }
-            this.props.updateCustomerProfile(payload);
-            //Router.push('/vendor/' + localStorage.getItem('user_id'));
-          } else if (parseInt(response.status) === 400) {
-            console.log(response.data);
-          }
-        })
-        .catch((error) => {
-          this.setState({
-            errorMsg: error.message,
-            authFlag: false,
-          });
-        });
-      // this.setState({
-      //   uploadedPic: event.target.files,
-      // });
     }
   };
 
@@ -249,31 +142,50 @@ class UpdateProfile extends Component {
     e.preventDefault();
     const data = {
       ...this.props.customerData,
-      ...{ token: localStorage.getItem('token'), 
-      ...{ user_id: localStorage.getItem('user_id')}},
+      ...{ token: localStorage.getItem('token'), ...{ user_id: localStorage.getItem('user_id') } },
     };
-    axios.defaults.withCredentials = true;
-    //make a post request with the user data
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios.put(serverUrl + 'customer/updateProfile', data).then(
-      (response) => {
-        console.log('Status Code : ', response.status);
-        if (response.status === 200) {
-          console.log(response.data);
+    // axios.defaults.withCredentials = true;
+    // //make a post request with the user data
+    // axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+    // axios.put(serverUrl + 'customer/updateProfile', data)
+    this.props.client
+      .mutate({
+        mutation: updateCustProfile,
+        variables: {
+          name: this.props.customerData.Name,
+          CustomerID: localStorage.getItem('CustomerID'),
+          gender: this.props.customerData.Gender,
+          DOB: this.props.customerData.DOB,
+          NickName: this.props.customerData.NickName,
+          streetAddress: this.props.customerData.streetAddress,
+          City: this.props.customerData.City,
+          state: this.props.customerData.State,
+          country: this.props.customerData.Country,
+          zip: Number(this.props.customerData.zip),
+          Headline: this.props.customerData.Headline,
+          Find_Me_In: this.props.customerData.Find_Me_In,
+          Things_Customer_Love: this.props.customerData.ILove,
+          Website: this.props.customerData.Website,
+        },
+      })
+      .then(
+        (response) => {
+          console.log('Status Code : ', response.data.updateCustProfile.Result);
+          if (response.data.updateCustProfile.Result === 'Customer Profile Updated') {
+          }
+        },
+        (error) => {
+          console.log(error);
         }
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
+      );
   };
 
   render() {
     const defaultImage =
       'https://s3-media0.fl.yelpcdn.com/assets/srv0/yelp_styleguide/bf5ff8a79310/assets/img/default_avatars/user_medium_square.png';
     let redirectVar = null;
-    if (!localStorage.getItem('token')) {
-      console.log('cookie not found');
+    if (!localStorage.getItem('role')) {
+      console.log('role not found');
       redirectVar = <Redirect to="/customerLogin" />;
     } else {
       if (localStorage.getItem('role') === 'Customer') {
@@ -303,7 +215,7 @@ class UpdateProfile extends Component {
                     onSubmit={this.updateProfile}
                     className="profile-bio yform yform-vertical-spacing"
                   >
-                    <div class="ysection">
+                    {/* <div class="ysection">
                       <h4>
                         Your Profile Photo
                         <strong>
@@ -332,8 +244,7 @@ class UpdateProfile extends Component {
                             alt=""
                             class="photo-box-img"
                             src={
-                              this.props.customerData.ImageURL !== null 
-                              
+                              this.props.customerData.ImageURL !== null
                                 ? this.props.customerData.ImageURL
                                 : defaultImage
                             }
@@ -341,7 +252,7 @@ class UpdateProfile extends Component {
                           />
                         </a>
                       </div>
-                    </div>
+                    </div> */}
                     <label for="first_name">Name</label>
                     <span class="help-block">This field is required.</span>
                     <input
@@ -562,8 +473,13 @@ const mapDispatchToProps = (dispatch) => {
         type: 'update-customer-profile',
         payload,
       });
-    }
+    },
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(UpdateProfile);
+// export default connect(mapStateToProps, mapDispatchToProps)(UpdateProfile);
+export default compose(
+  withApollo,
+  graphql(updateCustProfile, { name: 'updateCustProfile' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(UpdateProfile);

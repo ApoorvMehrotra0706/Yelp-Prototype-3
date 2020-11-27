@@ -219,7 +219,7 @@ const CustomerType = new GraphQLObjectType({
       type: GraphQLString,
     },
     DOB: {
-      type: GraphQLInt,
+      type: GraphQLString,
     },
     NickName: {
       type: GraphQLString,
@@ -765,7 +765,7 @@ const RootQuery = new GraphQLObjectType({
       type: CustomerType,
       args: {
         id: {
-          type: GraphQLID,
+          type: GraphQLString,
         },
       },
       resolve(parent, args) {
@@ -869,7 +869,7 @@ const Mutation = new GraphQLObjectType({
           type: GraphQLString,
         },
         DOB: {
-          type: GraphQLInt,
+          type: GraphQLString,
         },
         NickName: {
           type: GraphQLString,
@@ -1195,13 +1195,13 @@ const Mutation = new GraphQLObjectType({
           type: GraphQLString,
         },
         CustomerID: {
-          type: GraphQLID,
+          type: GraphQLString,
         },
         gender: {
           type: GraphQLString,
         },
         DOB: {
-          type: GraphQLInt,
+          type: GraphQLString,
         },
         NickName: {
           type: GraphQLString,
@@ -1209,9 +1209,9 @@ const Mutation = new GraphQLObjectType({
         city: {
           type: GraphQLString,
         },
-        contact: {
-          type: GraphQLString,
-        },
+        // contact: {
+        //   type: GraphQLString,
+        // },
         streetAddress: {
           type: GraphQLString,
         },
@@ -1227,9 +1227,9 @@ const Mutation = new GraphQLObjectType({
         country: {
           type: GraphQLString,
         },
-        Contact: {
-          type: GraphQLString,
-        },
+        // Contact: {
+        //   type: GraphQLString,
+        // },
         zip: {
           type: GraphQLInt,
         },

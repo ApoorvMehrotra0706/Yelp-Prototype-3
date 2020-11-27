@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import '../../App.css';
-import axios from 'axios';
 import cookie from 'react-cookies';
 import { Redirect } from 'react-router';
 import loginHandlingReducer from '../../reducer/loginHandlingReducer';
 import jwt_decode from 'jwt-decode';
 import { connect } from 'react-redux';
-import serverUrl from './../../config';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { custLogin } from '../../mutation/mutation';
 
 // Define a Login Component
 class CustomerLogin extends Component {
@@ -63,14 +64,20 @@ class CustomerLogin extends Component {
       password: this.state.password,
     };
     // set the with credentials to true
-    axios.defaults.withCredentials = true;
-    // make a post request with the user data
-    axios
-      .post(serverUrl + 'customer/loginCustomer', data)
+    this.props.client
+      .mutate({
+        mutation: custLogin,
+        variables: {
+          emailID: this.state.emailID,
+          Password: this.state.password,
+        },
+      })
       .then((response) => {
-        console.log('Status Code : ', response.status);
-        if (response.status === 200) {
-          localStorage.setItem('token',response.data);
+        console.log('Status Code : ', response.data.custLogin.Result);
+        if (response.data.custLogin.Result === 'Login successful') {
+          localStorage.setItem('CustomerID', response.data.custLogin._id);
+          localStorage.setItem('username', response.data.custLogin.emailID);
+          localStorage.setItem('role', response.data.custLogin.Role);
           this.setState({
             authFlag: true,
           });
@@ -96,11 +103,7 @@ class CustomerLogin extends Component {
   render() {
     //redirect based on successful login
     let redirectVar = null;
-    if (localStorage.getItem('token')) {
-      const decoded = jwt_decode(localStorage.getItem('token').split(' ')[1]);
-      localStorage.setItem('user_id', decoded._id);
-      localStorage.setItem('username', decoded.username);
-      localStorage.setItem('role',decoded.role);
+    if (localStorage.getItem('role') === 'Customer') {
       redirectVar = <Redirect to="/customerProfile" />;
     }
     return (
@@ -166,4 +169,9 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 //export Login Component
-export default connect(null, mapDispatchToProps)(CustomerLogin);
+// export default connect(null, mapDispatchToProps)(CustomerLogin);
+export default compose(
+  withApollo,
+  graphql(custLogin, { name: 'custLogin' }),
+  connect(null, mapDispatchToProps)
+)(CustomerLogin);
