@@ -30,7 +30,7 @@ const fetchStaticData = async (req) => {
   res.CountryName = countryData;
   res.StateName = stateData;
   res.CuisineName = cuisineData;
-  res.GenderData = genderData;
+  res.GenderName = genderData;
   return res;
 };
 

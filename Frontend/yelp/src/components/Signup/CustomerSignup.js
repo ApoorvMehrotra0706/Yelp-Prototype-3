@@ -6,6 +6,9 @@ import { Redirect } from 'react-router';
 import '../FirstPage/WebPage.css';
 import serverUrl from '../../config';
 import { connect } from 'react-redux';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { custSignUp } from '../../mutation/mutation';
 
 // Define a Login Component
 class CustomerSignup extends Component {
@@ -17,8 +20,7 @@ class CustomerSignup extends Component {
     this.state = {
       emailID: '',
       password: '',
-      firstName: '',
-      lastName: '',
+      name: '',
       contact: null,
       country: '',
       countryError: 0,
@@ -42,8 +44,7 @@ class CustomerSignup extends Component {
     //Bind the handlers to this class
     this.emailIDChangeHandler = this.emailIDChangeHandler.bind(this);
     this.passwordChangeHandler = this.passwordChangeHandler.bind(this);
-    this.firstNameChangeHandler = this.firstNameChangeHandler.bind(this);
-    this.lastNameChangeHandler = this.lastNameChangeHandler.bind(this);
+    this.nameChangeHandler = this.nameChangeHandler.bind(this);
     this.submitLogin = this.submitLogin.bind(this);
     this.onGenderChangeValue = this.onGenderChangeValue.bind(this);
     this.contactChangeHandler = this.contactChangeHandler.bind(this);
@@ -61,20 +62,10 @@ class CustomerSignup extends Component {
   }
 
   componentDidMount() {
-    // axios.get(serverUrl + 'customer/stateNames').then((response) => {
-    //   //update the state with the response data
-    //   let stateDetails = response.data[0].map((state) => {
-    //     return { key: state.StateID, value: state.State_Name };
-    //   });
-    //   this.setState({
-    //     stateNames: this.state.stateNames.concat(stateDetails),
-    //   });
-    // });
     this.setState({
       stateNames: this.props.staticData.stateNames,
       countryNames: this.props.staticData.countryNames,
     });
-    
   }
   // emailID change handler to update state variable with the text entered by the user
   emailIDChangeHandler = (e) => {
@@ -92,7 +83,7 @@ class CustomerSignup extends Component {
     });
   };
 
-  firstNameChangeHandler = (e) => {
+  nameChangeHandler = (e) => {
     let pattern = /[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?@0123456789]+/g;
     if (e.target.value.match(pattern)) {
       this.setState({
@@ -102,22 +93,7 @@ class CustomerSignup extends Component {
       this.setState({
         firstNameError: 0,
         errorFlag: 0,
-        firstName: e.target.value,
-      });
-    }
-  };
-
-  lastNameChangeHandler = (e) => {
-    let pattern = /[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?@0123456789]+/g;
-    if (e.target.value.match(pattern)) {
-      this.setState({
-        lastNameError: 1,
-      });
-    } else {
-      this.setState({
-        lastNameError: 0,
-        errorFlag: 0,
-        lastName: e.target.value,
+        name: e.target.value,
       });
     }
   };
@@ -211,7 +187,6 @@ class CustomerSignup extends Component {
     if (
       this.state.emailID.match(pattern) &&
       this.state.firstNameError == 0 &&
-      this.state.lastNameError == 0 &&
       this.state.contactError == 0 &&
       this.state.stateNameError == 0 &&
       this.state.countryError == 0 &&
@@ -221,26 +196,42 @@ class CustomerSignup extends Component {
     ) {
       const data = {
         emailID: this.state.emailID,
-        password: this.state.password,
-        firstName: this.state.firstName,
-        lastName: this.state.lastName,
-        role: this.state.role,
+        Password: this.state.password,
+        name: this.state.name,
+        Role: this.state.role,
         gender: this.state.gender,
         contact: this.state.contact,
         country: this.state.country,
-        stateName: this.state.stateName,
+        state: this.state.stateName,
         streetAddress: this.state.streetAddress,
-        city: this.state.city,
+        City: this.state.city,
         zip: this.state.zip,
       };
       // set the with credentials to true
-      axios.defaults.withCredentials = true;
-      // make a post request with the user data
-      axios
-        .post(serverUrl + 'customer/signupCustomer', data)
+      // axios.defaults.withCredentials = true;
+      // // make a post request with the user data
+      // axios
+      //   .post(serverUrl + 'customer/signupCustomer', data)
+      this.props.client
+        .mutate({
+          mutation: custSignUp,
+          variables: {
+            emailID: this.state.emailID,
+            Password: this.state.password,
+            name: this.state.name,
+            Role: this.state.role,
+            gender: this.state.gender,
+            contact: this.state.contact,
+            country: this.state.country,
+            state: this.state.stateName,
+            streetAddress: this.state.streetAddress,
+            City: this.state.city,
+            zip: Number(this.state.zip),
+          },
+        })
         .then((response) => {
-          console.log('Status Code : ', response.status);
-          if (response.status === 200) {
+          console.log('Status Code : ', response.data.custSignUp.Result);
+          if (response.data.custSignUp.Result === 'Successfully Created') {
             this.setState({
               authFlag: true,
             });
@@ -253,6 +244,7 @@ class CustomerSignup extends Component {
           } else {
             this.setState({
               authFlag: false,
+              emailIDerror: 1,
             });
           }
         })
@@ -321,30 +313,16 @@ class CustomerSignup extends Component {
                     </div>
                     <div class="form-group">
                       <input
-                        onChange={this.firstNameChangeHandler}
+                        onChange={this.nameChangeHandler}
                         type="text"
                         class="form-control"
                         name="firstName"
-                        placeholder="First Name"
+                        placeholder="Name"
                         placeholderTextColor={'red'}
                         required
                       />
                     </div>
                     {this.state.firstNameError === 1 && (
-                      <p style={{ color: 'red' }}>It can only have letters.</p>
-                    )}
-                    <div class="form-group">
-                      <input
-                        onChange={this.lastNameChangeHandler}
-                        lasttNameChangeHandler
-                        type="text"
-                        class="form-control"
-                        name="lastName"
-                        placeholder="Last Name"
-                        required
-                      />
-                    </div>
-                    {this.state.lastNameError === 1 && (
                       <p style={{ color: 'red' }}>It can only have letters.</p>
                     )}
                     <div>
@@ -440,9 +418,10 @@ class CustomerSignup extends Component {
                         className="form-control"
                         value={this.state.stateName}
                         onChange={this.onStateSelect}
-                      ><option className="Dropdown-menu" key="" value="">
-                      --Select-State--
-                    </option>
+                      >
+                        <option className="Dropdown-menu" key="" value="">
+                          --Select-State--
+                        </option>
                         {this.state.stateNames.map((states) => (
                           <option className="Dropdown-menu" key={states.key} value={states.value}>
                             {states.value}
@@ -450,23 +429,6 @@ class CustomerSignup extends Component {
                         ))}
                       </select>
                     </div>
-
-                    {/* <div class="form-group">
-                      <input
-                        onChange={this.countryChangeHandler}
-                        type="text"
-                        class="form-control"
-                        name="country"
-                        placeholder="Country"
-                        required
-                      />
-                      {this.state.countryError === 1 && (
-                        <p style={{ color: 'red' }}>Invalid entry</p>
-                      )}
-                      {this.state.errorFlag === 1 && (
-                        <p style={{ color: 'red' }}>Signup failed.ID already in use</p>
-                      )}
-                    </div> */}
                     <div class="form-group">
                       <select
                         className="form-control"
@@ -474,8 +436,8 @@ class CustomerSignup extends Component {
                         onChange={this.countryChangeHandler}
                       >
                         <option className="Dropdown-menu" key="" value="">
-                            --Select-Country--
-                          </option>
+                          --Select-Country--
+                        </option>
                         {this.state.countryNames.map((country) => (
                           <option className="Dropdown-menu" key={country.key} value={country.value}>
                             {country.value}
@@ -510,8 +472,12 @@ const mapStateToProps = (state) => {
   const { staticData } = state.staticDataReducer;
   return {
     staticData: staticData,
-    
   };
 };
 //export Login Component
-export default connect(mapStateToProps, mapDispatchToProps)(CustomerSignup);
+// export default connect(mapStateToProps, mapDispatchToProps)(CustomerSignup);
+export default compose(
+  withApollo,
+  graphql(custSignUp, { name: 'custSignUp' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(CustomerSignup);

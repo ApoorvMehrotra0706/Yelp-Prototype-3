@@ -6,6 +6,9 @@ import { Redirect } from 'react-router';
 import '../FirstPage/WebPage.css';
 import { connect } from 'react-redux';
 import serverUrl from '../../config';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restSignUp } from '../../mutation/mutation';
 
 // Define a Login Component
 class RestaurantSignup extends Component {
@@ -17,8 +20,7 @@ class RestaurantSignup extends Component {
     this.state = {
       emailID: '',
       password: '',
-      firstName: '',
-      lastName: '',
+      name: '',
       contact: null,
       contactError: 0,
       streetAddress: '',
@@ -42,8 +44,7 @@ class RestaurantSignup extends Component {
     //Bind the handlers to this class
     this.emailIDChangeHandler = this.emailIDChangeHandler.bind(this);
     this.passwordChangeHandler = this.passwordChangeHandler.bind(this);
-    this.firstNameChangeHandler = this.firstNameChangeHandler.bind(this);
-    this.lastNameChangeHandler = this.lastNameChangeHandler.bind(this);
+    this.nameChangeHandler = this.nameChangeHandler.bind(this);
     this.contactChangeHandler = this.contactChangeHandler.bind(this);
     this.streetAddressChangeHandler = this.streetAddressChangeHandler.bind(this);
     this.cityChangeHandler = this.cityChangeHandler.bind(this);
@@ -60,9 +61,9 @@ class RestaurantSignup extends Component {
   }
 
   componentDidMount() {
-    // axios.get(serverUrl + 'customer/stateNames').then((response) => {
+    // this.props.client.query({ query: staticDataQuery }).then((response) => {
     //   //update the state with the response data
-    //   let stateDetails = response.data[0].map((state) => {
+    //   let stateDetails = response.data.StaticData.StateName.map((state) => {
     //     return { key: state.StateID, value: state.State_Name };
     //   });
     //   this.setState({
@@ -91,7 +92,7 @@ class RestaurantSignup extends Component {
     });
   };
 
-  firstNameChangeHandler = (e) => {
+  nameChangeHandler = (e) => {
     let pattern = /[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?@0123456789]+/g;
     if (e.target.value.match(pattern)) {
       this.setState({
@@ -101,22 +102,7 @@ class RestaurantSignup extends Component {
       this.setState({
         firstNameError: 0,
         errorFlag: 0,
-        firstName: e.target.value,
-      });
-    }
-  };
-
-  lastNameChangeHandler = (e) => {
-    let pattern = /[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?@0123456789]+/g;
-    if (e.target.value.match(pattern)) {
-      this.setState({
-        lastNameError: 1,
-      });
-    } else {
-      this.setState({
-        lastNameError: 0,
-        errorFlag: 0,
-        lastName: e.target.value,
+        name: e.target.value,
       });
     }
   };
@@ -204,7 +190,6 @@ class RestaurantSignup extends Component {
     if (
       this.state.emailID.match(pattern) &&
       this.state.firstNameError === 0 &&
-      this.state.lastNameError === 0 &&
       this.state.streetAddressError === 0 &&
       this.state.cityError === 0 &&
       this.state.stateNameError === 0 &&
@@ -214,10 +199,9 @@ class RestaurantSignup extends Component {
     ) {
       const data = {
         emailID: this.state.emailID,
-        password: this.state.password,
-        firstName: this.state.firstName,
-        lastName: this.state.lastName,
-        role: this.state.role,
+        Password: this.state.password,
+        name: this.state.name,
+        Role: this.state.role,
         gender: this.state.gender,
         contact: this.state.contact,
         streetAddress: this.state.streetAddress,
@@ -227,13 +211,29 @@ class RestaurantSignup extends Component {
         zip: this.state.zip,
       };
       // set the with credentials to true
-      axios.defaults.withCredentials = true;
+      // axios.defaults.withCredentials = true;
       // make a post request with the user data
-      axios
-        .post(serverUrl + 'restaurant/signupRestaurant', data)
+      // axios
+      //   .post(serverUrl + 'restaurant/signupRestaurant', data)
+      this.props.client
+        .mutate({
+          mutation: restSignUp,
+          variables: {
+            emailID: this.state.emailID,
+            Password: this.state.password,
+            name: this.state.name,
+            Role: this.state.role,
+            contact: this.state.contact,
+            streetAddress: this.state.streetAddress,
+            city: this.state.city,
+            state: this.state.stateName,
+            country: this.state.country,
+            zip: Number(this.state.zip),
+          },
+        })
         .then((response) => {
-          console.log('Status Code : ', response.status);
-          if (response.status === 200) {
+          console.log('Status Code : ', response.data.restSignUp.Result);
+          if (response.data.restSignUp.Result === 'Restaurant signup successful') {
             this.setState({
               authFlag: true,
             });
@@ -252,7 +252,7 @@ class RestaurantSignup extends Component {
         .catch((error) => {
           this.setState({
             errorFlag: 1,
-            emailIDerror: 1
+            emailIDerror: 1,
           });
         });
     } else {
@@ -311,30 +311,18 @@ class RestaurantSignup extends Component {
                     </div>
                     <div class="form-group">
                       <input
-                        onChange={this.firstNameChangeHandler}
+                        onChange={this.nameChangeHandler}
                         type="text"
                         class="form-control"
                         name="firstName"
-                        placeholder="First Name"
+                        placeholder="Name"
                         required
                       />
                     </div>
                     {this.state.firstNameError === 1 && (
                       <p style={{ color: 'red' }}>It can only have letters.</p>
                     )}
-                    <div class="form-group">
-                      <input
-                        onChange={this.lastNameChangeHandler}
-                        type="text"
-                        class="form-control"
-                        name="lastName"
-                        placeholder="Last Name"
-                        required
-                      />
-                    </div>
-                    {this.state.lastNameError === 1 && (
-                      <p style={{ color: 'red' }}>It can only have letters.</p>
-                    )}
+
                     <div class="form-group">
                       <input
                         onChange={this.contactChangeHandler}
@@ -382,8 +370,8 @@ class RestaurantSignup extends Component {
                         onChange={this.onStateSelect}
                       >
                         <option className="Dropdown-menu" key="" value="">
-                            --Select-State--
-                          </option>
+                          --Select-State--
+                        </option>
                         {this.state.stateNames.map((states) => (
                           <option className="Dropdown-menu" key={states.key} value={states.value}>
                             {states.value}
@@ -391,19 +379,7 @@ class RestaurantSignup extends Component {
                         ))}
                       </select>
                     </div>
-                    {/* <div class="form-group">
-                      <input
-                        onChange={this.countryChangeHandler}
-                        type="text"
-                        class="form-control"
-                        name="country"
-                        placeholder="Country"
-                        required
-                      />
-                    </div>
-                    {this.state.countryError === 1 && (
-                      <p style={{ color: 'red' }}>Only letters allowed</p>
-                    )} */}
+
                     <div class="form-group">
                       <select
                         className="form-control"
@@ -412,8 +388,8 @@ class RestaurantSignup extends Component {
                         required
                       >
                         <option className="Dropdown-menu" key="" value="">
-                            --Select-Country
-                          </option>
+                          --Select-Country
+                        </option>
                         {this.state.countryNames.map((country) => (
                           <option className="Dropdown-menu" key={country.key} value={country.value}>
                             {country.value}
@@ -461,8 +437,12 @@ const mapStateToProps = (state) => {
   const { staticData } = state.staticDataReducer;
   return {
     staticData: staticData,
-    
   };
 };
 //export Login Component
-export default connect(mapStateToProps, mapDispatchToProps)(RestaurantSignup);
+// export default connect(mapStateToProps, mapDispatchToProps)(RestaurantSignup);
+export default compose(
+  withApollo,
+  graphql(restSignUp, { name: 'restSignUp' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(RestaurantSignup);

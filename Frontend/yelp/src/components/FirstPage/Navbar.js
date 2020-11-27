@@ -6,6 +6,9 @@ import axios from 'axios';
 import serverUrl from '../../config';
 import { connect } from 'react-redux';
 import moment from 'moment';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { staticDataQuery } from '../../query/query';
 
 // create the Navbar Component
 class Navbar extends Component {
@@ -20,22 +23,23 @@ class Navbar extends Component {
   }
 
   componentDidMount() {
-    axios.get(serverUrl + 'staticData/fetchStaticData').then((response) => {
-      console.log(response.data);
+    // axios.get(serverUrl + 'staticData/fetchStaticData')
+    this.props.client.query({ query: staticDataQuery }).then((response) => {
+      console.log(response.data.StaticData);
       //update the state with the response data
-      let stateDetails = response.data[0].map((state) => {
+      let stateDetails = response.data.StaticData.StateName.map((state) => {
         return { key: state._id, value: state.StateName };
       });
       this.setState({
         stateNames: this.state.stateNames.concat(stateDetails),
       });
-      let countryDetails = response.data[1].map((country) => {
+      let countryDetails = response.data.StaticData.CountryName.map((country) => {
         return { key: country._id, value: country.CountryName };
       });
       this.setState({
         countryNames: this.state.countryNames.concat(countryDetails),
       });
-      let genderDetails = response.data[2].map((gender) => {
+      let genderDetails = response.data.StaticData.GenderName.map((gender) => {
         return { key: gender._id, value: gender.GenderName };
       });
       this.setState({
@@ -49,49 +53,49 @@ class Navbar extends Component {
       this.props.updateStaticDataInfo(payload);
 
       // Loading customer Profile
-      if(localStorage.getItem('token') && localStorage.getItem('role') === 'Customer') {
+      if (localStorage.getItem('token') && localStorage.getItem('role') === 'Customer') {
         axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
         axios
-        .get(
-          serverUrl + 'customer/getCustomerCompleteProfile',
+          .get(
+            serverUrl + 'customer/getCustomerCompleteProfile',
 
-          { params: { CustomerID: localStorage.getItem('user_id') }, withCredentials: true }
-        )
-        .then((response) => {
-          console.log(response.data);
-          let DOB = moment.utc(response.data.DOB);
-          DOB= DOB.format('YYYY-MM-DD');
-          localStorage.setItem('Name', response.data.name);
-          let payload = {
-            Name: response.data.name,
-            NickName: response.data.NickName,
-            DOB: DOB,
-            City: response.data.City,
-            State: response.data.state, 
-            Address: (response.data.City.concat(', ')).concat(response.data.state), 
-            Gender: response.data.gender,         
-            streetAddress: response.data.streetAddress,
-            Country: response.data.country,
-            zip: response.data.zip,
-            Headline: response.data.Headline,
-            Contact: response.data.contact,
-            ILove: response.data.Things_Customer_Love,
-            Find_Me_In: response.data.Find_Me_In,
-            YelpingSince: response.data.YelpingSince,
-            Website: response.data.Website,
-            ImageURL: response.data.ImageURL,
-            Events: response.data.Events,
-            FollowingIDs: response.data.FollowingCustomerIDs,
-          };
-          this.props.updateCustomerProfile(payload);
-          payload = {
-            Contact: response.data.contact,
-            EmailID: localStorage.getItem('username'),
-            NewEmailID: localStorage.getItem('username'),
-            NewContact: response.data.contact,
-          };
-          this.props.updateCustomerContactInfo(payload);
-        });
+            { params: { CustomerID: localStorage.getItem('user_id') }, withCredentials: true }
+          )
+          .then((response) => {
+            console.log(response.data);
+            let DOB = moment.utc(response.data.DOB);
+            DOB = DOB.format('YYYY-MM-DD');
+            localStorage.setItem('Name', response.data.name);
+            let payload = {
+              Name: response.data.name,
+              NickName: response.data.NickName,
+              DOB: DOB,
+              City: response.data.City,
+              State: response.data.state,
+              Address: response.data.City.concat(', ').concat(response.data.state),
+              Gender: response.data.gender,
+              streetAddress: response.data.streetAddress,
+              Country: response.data.country,
+              zip: response.data.zip,
+              Headline: response.data.Headline,
+              Contact: response.data.contact,
+              ILove: response.data.Things_Customer_Love,
+              Find_Me_In: response.data.Find_Me_In,
+              YelpingSince: response.data.YelpingSince,
+              Website: response.data.Website,
+              ImageURL: response.data.ImageURL,
+              Events: response.data.Events,
+              FollowingIDs: response.data.FollowingCustomerIDs,
+            };
+            this.props.updateCustomerProfile(payload);
+            payload = {
+              Contact: response.data.contact,
+              EmailID: localStorage.getItem('username'),
+              NewEmailID: localStorage.getItem('username'),
+              NewContact: response.data.contact,
+            };
+            this.props.updateCustomerContactInfo(payload);
+          });
       }
     });
   }
@@ -113,7 +117,7 @@ class Navbar extends Component {
           this.setState({
             authFlag: false,
           });
-          
+
           let payload = {
             emailID: '',
             role: '',
@@ -141,7 +145,7 @@ class Navbar extends Component {
           errorFlag: 1,
         });
       });
-      localStorage.clear();
+    localStorage.clear();
   };
   render() {
     // if Token is set render Logout Button
@@ -323,4 +327,9 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(null, mapDispatchToProps)(Navbar);
+// export default connect(null, mapDispatchToProps)(Navbar);
+export default compose(
+  withApollo,
+  graphql(staticDataQuery, { name: 'staticDataQuery' }),
+  connect(null, mapDispatchToProps)
+)(Navbar);
