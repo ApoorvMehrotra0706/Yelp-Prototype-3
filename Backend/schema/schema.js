@@ -39,6 +39,7 @@ const {
   restLogin,
   updateOrder,
   restOrderSearchResults,
+  fetchStaticData,
 } = require('../Restaurant/restaurantFunctionality');
 
 const {
@@ -472,6 +473,27 @@ const FoodMenuType = new GraphQLObjectType({
   }),
 });
 
+const StaticType = new GraphQLObjectType({
+  name: 'StaticType',
+  fields: () => ({
+    CountryName: {
+      type: new GraphQLList(CountryType),
+    },
+    StateName: {
+      type: new GraphQLList(StateType),
+    },
+    CuisineName: {
+      type: new GraphQLList(CuisineType),
+    },
+    GenderName: {
+      type: new GraphQLList(GenderType),
+    },
+    Result: {
+      type: GraphQLString,
+    },
+  }),
+});
+
 const RestSearchType = new GraphQLObjectType({
   name: 'RestSearchType',
   fields: () => ({
@@ -727,6 +749,18 @@ const OrderCartInputType = new GraphQLInputObjectType({
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
+    StaticData: {
+      type: StaticType,
+      args: {
+        id: {
+          type: GraphQLID,
+        },
+      },
+      resolve(parent, args) {
+        const result = fetchStaticData(args);
+        return result;
+      },
+    },
     CustomerProfile: {
       type: CustomerType,
       args: {

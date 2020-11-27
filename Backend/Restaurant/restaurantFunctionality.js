@@ -12,10 +12,27 @@ const Desserts = require('../models/Desserts');
 const Review = require('../models/ReviewsModel');
 const Orders = require('../models/OrdersModel');
 const OrderCart = require('../models/OrdersCart');
+const Country = require('../models/CountryModel');
+const State = require('../models/StateModel');
+const Cuisine = require('../models/CuisineModel');
+const Gender = require('../models/GenderModel');
 
 const geofinder = geocoder({
   key: 'AIzaSyDHRJvSWfXNenjs51fuPKCvOODQKm2AhQY',
 });
+
+const fetchStaticData = async (req) => {
+  const res = {};
+  const countryData = await Country.find();
+  const stateData = await State.find();
+  const cuisineData = await Cuisine.find();
+  const genderData = await Gender.find();
+  res.CountryName = countryData;
+  res.StateName = stateData;
+  res.CuisineName = cuisineData;
+  res.GenderData = genderData;
+  return res;
+};
 
 const restaurantSignup = async (req) => {
   const res = {};
@@ -53,24 +70,19 @@ const restaurantSignup = async (req) => {
 
 const restLogin = async (req) => {
   const res = {};
-  res.Result = 'Login successful';
+  // res.Result = 'Login successful';
   // eslint-disable-next-line consistent-return
-  await Login.findOne({ emailID: req.emailID, Role: 'Restaurant' }, async (error, user) => {
-    if (error) {
-      res.Result = 'ID not found';
-      return res;
+  const loginResult = await Login.findOne({ emailID: req.emailID, Role: 'Restaurant' });
+  if (loginResult) {
+    if (await bcrypt.compare(req.password, loginResult.Password)) {
+      res.Result = 'Login successful';
+      // eslint-disable-next-line no-else-return
+    } else {
+      res.Result = 'Invalid credentails';
     }
-    if (user) {
-      if (await bcrypt.compare(req.password, user.Password)) {
-        res.Result = 'Login successful';
-        return res;
-        // eslint-disable-next-line no-else-return
-      } else {
-        res.Result = 'Invalid credentails';
-        return res;
-      }
-    }
-  });
+  } else {
+    res.Result = 'ID not found';
+  }
   return res;
 };
 
@@ -207,4 +219,5 @@ module.exports = {
   updateRestProfile,
   updateOrder,
   restOrderSearchResults,
+  fetchStaticData,
 };

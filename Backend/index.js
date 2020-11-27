@@ -10,6 +10,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 // eslint-disable-next-line no-unused-vars
 const { mongoDB, frontendURL } = require('./config');
 
@@ -35,12 +36,12 @@ app.use(
   })
 );
 
-// app.use(
-//   cors({
-//     origin: 'http://localhost:3000',
-//     credentials: true,
-//   })
-// );
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 // eslint-disable-next-line func-names
 app.use(function (req, res, next) {
