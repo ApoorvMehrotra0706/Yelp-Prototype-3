@@ -60,6 +60,7 @@ class Navbar extends Component {
             variables: {
               id: localStorage.getItem('CustomerID'),
             },
+            fetchPolicy: 'network-only',
           })
           .then((response) => {
             console.log(response.data.CustomerProfile);
@@ -227,12 +228,6 @@ class Navbar extends Component {
           <li class={this.props.location.pathname === '/restaurantReview' && 'active'}>
             <Link to="/restaurantReview">Review</Link>
           </li>
-          <li class={this.props.location.pathname === '/restaurantEvents' && 'active'}>
-            <Link to="/restaurantEvents">Events</Link>
-          </li>
-          <li class={this.props.location.pathname === '/messages' && 'active'}>
-            <Link to="/messages">Message</Link>
-          </li>
         </ul>
       );
     } else if (localStorage.getItem('role') === 'Customer') {
@@ -249,9 +244,6 @@ class Navbar extends Component {
           </li>
           <li class={this.props.location.pathname === '/search' && 'active'}>
             <Link to="/search">Search</Link>
-          </li>
-          <li class={this.props.location.pathname === '/customerEvents' && 'active'}>
-            <Link to="/customerEvents">Events</Link>
           </li>
           <li class={this.props.location.pathname === '/orderHistory' && 'active'}>
             <Link to="/orderHistory">Order History</Link>

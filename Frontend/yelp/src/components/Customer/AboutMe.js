@@ -18,6 +18,7 @@ class AboutMe extends Component {
         variables: {
           id: localStorage.getItem('CustomerID'),
         },
+        fetchPolicy: 'network-only',
       })
       .then((response) => {
         console.log(response.data.CustomerProfile);
