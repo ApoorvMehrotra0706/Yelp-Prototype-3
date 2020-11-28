@@ -107,44 +107,44 @@ class Navbar extends Component {
       role: localStorage.getItem('role'),
     };
     let url = '';
-    if (data.role === 'Customer') url = serverUrl + 'customer/logoutCustomer';
-    else url = serverUrl + 'restaurant/restaurantLogout';
-    axios
-      .post(url, data)
-      .then((response) => {
-        console.log('Status Code : ', response.status);
-        if (response.status === 200) {
-          this.setState({
-            authFlag: false,
-          });
+    // if (data.role === 'Customer') url = serverUrl + 'customer/logoutCustomer';
+    // else url = serverUrl + 'restaurant/restaurantLogout';
+    // axios
+    //   .post(url, data)
+    //   .then((response) => {
+    //     console.log('Status Code : ', response.status);
+    //     if (response.status === 200) {
+    //       this.setState({
+    //         authFlag: false,
+    //       });
 
-          let payload = {
-            emailID: '',
-            role: '',
-            loginStatus: 'false',
-          };
-          this.props.updateLoginInfo(payload);
-          payload = {
-            emailID: '',
-            role: '',
-            signupStatus: '',
-          };
-          this.props.updateSignUpInfo(payload);
-          payload = {
-            Name: '',
-          };
-          this.props.updateNameInfo(payload);
-        } else {
-          this.setState({
-            authFlag: true,
-          });
-        }
-      })
-      .catch((error) => {
-        this.setState({
-          errorFlag: 1,
-        });
-      });
+    //       let payload = {
+    //         emailID: '',
+    //         role: '',
+    //         loginStatus: 'false',
+    //       };
+    //       this.props.updateLoginInfo(payload);
+    //       payload = {
+    //         emailID: '',
+    //         role: '',
+    //         signupStatus: '',
+    //       };
+    //       this.props.updateSignUpInfo(payload);
+    //       payload = {
+    //         Name: '',
+    //       };
+    //       this.props.updateNameInfo(payload);
+    //     } else {
+    //       this.setState({
+    //         authFlag: true,
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     this.setState({
+    //       errorFlag: 1,
+    //     });
+    //   });
     localStorage.clear();
   };
   render() {
@@ -192,6 +192,10 @@ class Navbar extends Component {
     let redirectVar = null;
     if (localStorage.getItem('role') && this.props.location.pathname === '/login') {
       redirectVar = <Redirect to="/home" />;
+    }
+
+    if (!localStorage.getItem('role') && this.props.location.pathname !== '/login') {
+      redirectVar = <Redirect to="/webPage" />;
     }
 
     if (localStorage.getItem('role') === 'Restaurant') {
