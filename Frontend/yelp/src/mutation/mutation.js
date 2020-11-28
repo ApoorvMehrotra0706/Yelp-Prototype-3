@@ -175,6 +175,62 @@ const updateRestProfile = gql`
   }
 `;
 
+const insertFood = gql`
+  mutation(
+    $category: String
+    $RestaurantID: String
+    $Dishname: String
+    $Price: Float
+    $Cuisine: String
+    $Main_Ingredients: String
+    $Description: String
+  ) {
+    insertFood(
+      category: $category
+      RestaurantID: $RestaurantID
+      Dishname: $Dishname
+      Price: $Price
+      Cuisine: $Cuisine
+      Main_Ingredients: $Main_Ingredients
+      Description: $Description
+    ) {
+      Result
+    }
+  }
+`;
+
+const deleteFood = gql`
+  mutation($ID: String, $category: String) {
+    deleteFood(ID: $ID, category: $category) {
+      Result
+    }
+  }
+`;
+
+const updateFood = gql`
+  mutation(
+    $category: String
+    $RestaurantID: String
+    $Dishname: String
+    $Price: Float
+    $Cuisine: String
+    $Main_Ingredients: String
+    $Description: String
+  ) {
+    updateFood(
+      category: $category
+      RestaurantID: $RestaurantID
+      Dishname: $Dishname
+      Price: $Price
+      Cuisine: $Cuisine
+      Main_Ingredients: $Main_Ingredients
+      Description: $Description
+    ) {
+      Result
+    }
+  }
+`;
+
 export {
   restSignUp,
   custSignUp,
@@ -183,4 +239,7 @@ export {
   updateCustContact,
   restLogin,
   updateRestProfile,
+  insertFood,
+  deleteFood,
+  updateFood,
 };

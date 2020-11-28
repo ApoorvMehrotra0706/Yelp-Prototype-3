@@ -122,7 +122,7 @@ class NewFoodForm extends Component {
                     value={this.props.food.Description}
                   />
                 </li>
-                <li>
+                {/* <li>
                   <label for="image">Update Image</label>
                   <input
                     style={{ cursor: 'pointer' }}
@@ -135,7 +135,7 @@ class NewFoodForm extends Component {
                     multiple
                     placeholder="update Profile Pic"
                   />
-                </li>
+                </li> */}
               </ul>
             </div>
 
@@ -158,9 +158,9 @@ class NewFoodForm extends Component {
 
 const mapStateToProps = (state) => {
   const { cuisine } = state.cuisineReducer;
-  return { 
+  return {
     cuisine: cuisine,
-   };
+  };
 };
 
-export default connect(mapStateToProps,null)(NewFoodForm);
+export default connect(mapStateToProps, null)(NewFoodForm);

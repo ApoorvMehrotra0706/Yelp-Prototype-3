@@ -1061,9 +1061,6 @@ const Mutation = new GraphQLObjectType({
     updateFood: {
       type: FoodMenuType,
       args: {
-        ID: {
-          type: GraphQLID,
-        },
         RestaurantID: {
           type: GraphQLString,
         },
@@ -1098,7 +1095,7 @@ const Mutation = new GraphQLObjectType({
       type: FoodMenuType,
       args: {
         ID: {
-          type: GraphQLID,
+          type: GraphQLString,
         },
         RestaurantID: {
           type: GraphQLString,

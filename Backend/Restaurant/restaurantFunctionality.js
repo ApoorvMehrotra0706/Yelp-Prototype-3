@@ -104,31 +104,31 @@ const insertFood = async (req) => {
       ...req,
     });
     await appetizer.save();
-    res.result = 'Appetizer saved';
+    res.Result = 'FoodItem saved';
   } else if (req.category === 'BEVERAGES') {
     const beverages = new Beverage({
       ...req,
     });
     await beverages.save();
-    res.result = 'Beverage saved';
+    res.Result = 'FoodItem saved';
   } else if (req.category === 'SALADS') {
     const salads = new Salads({
       ...req,
     });
     await salads.save();
-    res.result = 'Salad saved';
+    res.Result = 'FoodItem saved';
   } else if (req.category === 'DESSERTS') {
     const desserts = new Desserts({
       ...req,
     });
     await desserts.save();
-    res.result = 'Desserts saved';
+    res.Result = 'FoodItem saved';
   } else if (req.category === 'MAIN_COURSE') {
     const mainCourse = new MainCourse({
       ...req,
     });
     await mainCourse.save();
-    res.Result = 'MainCourse saved';
+    res.Result = 'FoodItem saved';
   }
   return res;
 };
@@ -137,19 +137,19 @@ const updateFood = async (req) => {
   const res = {};
   if (req.category === 'APPETIZERS') {
     const appetizer = await Appetizer.updateOne({ _id: req.ID }, { ...req });
-    res.result = 'Appetizer updated';
+    res.Result = 'FoodItem updated';
   } else if (req.category === 'BEVERAGES') {
     const beverages = await Beverage.updateOne({ _id: req.ID }, { ...req });
-    res.result = 'Beverage updated';
+    res.Result = 'FoodItem updated';
   } else if (req.category === 'SALADS') {
     const salads = await Salads.updateOne({ _id: req.ID }, { ...req });
-    res.result = 'Salad updated';
+    res.Result = 'FoodItem updated';
   } else if (req.category === 'DESSERTS') {
     const desserts = await Desserts.updateOne({ _id: req.ID }, { ...req });
-    res.result = 'Desserts updated';
+    res.Result = 'FoodItem updated';
   } else if (req.category === 'MAIN_COURSE') {
     const mainCourse = await MainCourse.updateOne({ _id: req.ID }, { ...req });
-    res.Result = 'MainCourse updated';
+    res.Result = 'FoodItem updated';
   }
   return res;
 };
@@ -158,19 +158,19 @@ const deleteFood = async (req) => {
   const res = {};
   if (req.category === 'APPETIZERS') {
     const appetizer = await Appetizer.deleteOne({ _id: req.ID });
-    res.result = 'Appetizer item deleted';
+    res.Result = 'Item deleted';
   } else if (req.category === 'BEVERAGES') {
     const beverages = await Beverage.deleteOne({ _id: req.ID });
-    res.result = 'Beverage item deleted';
+    res.Result = 'Item deleted';
   } else if (req.category === 'SALADS') {
     const salads = await Salads.deleteOne({ _id: req.ID });
-    res.result = 'Salad item deleted';
+    res.Result = 'Item deleted';
   } else if (req.category === 'DESSERTS') {
     const desserts = await Desserts.deleteOne({ _id: req.ID });
-    res.result = 'Desserts item deleted';
+    res.Result = 'Item deleted';
   } else if (req.category === 'MAIN_COURSE') {
     const mainCourse = await MainCourse.deleteOne({ _id: req.ID });
-    res.Result = 'MainCourse item deleted';
+    res.Result = 'Item deleted';
   }
   return res;
 };

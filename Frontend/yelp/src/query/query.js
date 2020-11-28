@@ -63,6 +63,46 @@ const restaurantProfileQuery = gql`
       Yelp_Delivery
       Latitude
       Longitude
+      Appetizers {
+        _id
+        Dishname
+        Price
+        Cuisine
+        Main_Ingredients
+        Description
+      }
+      Beverage {
+        _id
+        Dishname
+        Price
+        Cuisine
+        Main_Ingredients
+        Description
+      }
+      Dessert {
+        _id
+        Dishname
+        Price
+        Cuisine
+        Main_Ingredients
+        Description
+      }
+      Main_Course {
+        _id
+        Dishname
+        Price
+        Cuisine
+        Main_Ingredients
+        Description
+      }
+      Salad {
+        _id
+        Dishname
+        Price
+        Cuisine
+        Main_Ingredients
+        Description
+      }
       TotalReviewCount
       TotalRatings
     }
