@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-import serverUrl from '../../config';
-import Review from '../Reviews/Review';
-import cookie from 'react-cookies';
 import WriteAReview from './WriteAReview';
 import { connect } from 'react-redux';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restaurantProfileQuery } from '../../query/query';
+import { writeReview } from '../../mutation/mutation';
 
 class RestaurantLeftReviewPart extends Component {
   constructor(props) {
@@ -25,26 +25,32 @@ class RestaurantLeftReviewPart extends Component {
     };
   }
   componentDidMount() {
-    axios
-      .get(serverUrl + 'customer/fetchRestaurantProfileForCustomer', {
-        params: { RestaurantID: localStorage.getItem('restaurantPageID') },
-        withCredentials: true,
+    this.props.client
+      .query({
+        query: restaurantProfileQuery,
+        variables: {
+          id: localStorage.getItem('restaurantPageID'),
+        },
+        fetchPolicy: 'network-only',
       })
       .then((response) => {
         console.log('Restaurant Profile Fetched', response.data);
         let avgRating = 0;
-        if(response.data.TotalReviewCount !== 0)
-          avgRating = Math.round(response.data.TotalRatings/Number(response.data.TotalReviewCount));
+        if (Number(response.data.RestaurantProfile.TotalReviewCount) !== 0)
+          avgRating = Math.round(
+            response.data.RestaurantProfile.TotalRatings /
+              Number(response.data.RestaurantProfile.TotalReviewCount)
+          );
         let payload = {
-          ID: response.data.RestaurantID,
-          Name: response.data.name,
-          CurbsidePickup: response.data.Curbside_Pickup,
-          DineIn: response.data.Dine_In,
-          YelpDelivery: response.data.Yelp_Delivery,
-          ImageUrl: response.data.ImageURL,
-          OpeningTime: response.data.Opening_Time,
-          ClosingTime: response.data.Closing_Time,
-          ReviewCounts: response.data.TotalReviewCount,
+          ID: response.data.RestaurantProfile.RestaurantID,
+          Name: response.data.RestaurantProfile.name,
+          CurbsidePickup: response.data.RestaurantProfile.Curbside_Pickup,
+          DineIn: response.data.RestaurantProfile.Dine_In,
+          YelpDelivery: response.data.RestaurantProfile.Yelp_Delivery,
+          ImageUrl: response.data.RestaurantProfile.ImageURL,
+          OpeningTime: response.data.RestaurantProfile.Opening_Time,
+          ClosingTime: response.data.RestaurantProfile.Closing_Time,
+          ReviewCounts: response.data.RestaurantProfile.TotalReviewCount,
           AvgRating: avgRating,
         };
         this.props.updateRestaurantProfile(payload);
@@ -59,50 +65,57 @@ class RestaurantLeftReviewPart extends Component {
   };
   submitReview = (event, review, rating) => {
     event.preventDefault();
-    const data = {
-      RestaurantID: localStorage.getItem('restaurantPageID'),
-      RestaurantName: this.props.restaurantProfile.Name,
-      review: this.props.customerReview.review,
-      rating: this.props.customerReview.rating,
-      CustomerID: localStorage.getItem('user_id'),
-      CustomerName: this.props.customerData.Name,
-      ImageUrl: this.props.customerData.ImageURL,
-      Date: new Date(),
-    };
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios.defaults.withCredentials = true;
-    //make a post request with the user data
-    axios.post(serverUrl + 'customer/submitReview', data).then(
-      (response) => {
-        console.log('Status Code : ', response.status);
-        if (response.status === 200) {
-          console.log(response.data);
-          this.setState({
-            showFoodMenu: !this.state.showFoodMenu,
-            //RegisteredCustomerList: [],
-          });
-          alert('Submitted your review');
-          let totalRatings = Number(this.props.restaurantProfile.ReviewCounts) * this.props.restaurantProfile.AvgRating;
-          let avgRating = Math.round((totalRatings + Number(this.props.customerReview.rating)) / (Number(this.props.restaurantProfile.ReviewCounts) + 1));
-          let payload = {
-            AvgRating: avgRating,
-            ReviewCounts: Number(this.props.restaurantProfile.ReviewCounts) + 1,
+    let Date = new Date();
+    Date = Date.toString();
+    this.props.client
+      .mutate({
+        mutation: writeReview,
+        variables: {
+          RestaurantID: localStorage.getItem('restaurantPageID'),
+          RestaurantName: this.props.restaurantProfile.Name,
+          Review: this.props.customerReview.review,
+          Ratings: this.props.customerReview.rating,
+          CustomerID: localStorage.getItem('CustomerID'),
+          CustomerName: this.props.customerData.Name,
+          // ImageUrl: this.props.customerData.ImageURL,
+          Date: Date,
+        },
+      })
+      .then(
+        (response) => {
+          console.log('Status Code : ', response.status);
+          if (response.data.writeReview.Result === 'Review submitted') {
+            console.log(response.data.writeReview.Result);
+            this.setState({
+              showFoodMenu: !this.state.showFoodMenu,
+              //RegisteredCustomerList: [],
+            });
+            alert('Submitted your review');
+            let totalRatings =
+              Number(this.props.restaurantProfile.ReviewCounts) *
+              this.props.restaurantProfile.AvgRating;
+            let avgRating = Math.round(
+              (totalRatings + Number(this.props.customerReview.rating)) /
+                (Number(this.props.restaurantProfile.ReviewCounts) + 1)
+            );
+            let payload = {
+              AvgRating: avgRating,
+              ReviewCounts: Number(this.props.restaurantProfile.ReviewCounts) + 1,
+            };
+            this.props.updateRestaurantProfile(payload);
+            payload = {
+              review: '',
+              rating: '',
+            };
+            this.props.updateCustomerReview(payload);
           }
-          this.props.updateRestaurantProfile(payload);
-          payload = {
-            review: '',
-            rating:'',
-          }
-          this.props.updateCustomerReview(payload);
+        },
+        (error) => {
+          console.log(error);
         }
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
+      );
     this.setState({
       showReview: !this.state.showReview,
-      
     });
   };
   render() {
@@ -161,7 +174,7 @@ class RestaurantLeftReviewPart extends Component {
                       class="lemon--div__373c0__1mboc i-stars__373c0__1T6rz i-stars--large-5__373c0__1GcGD border-color--default__373c0__3-ifU overflow--hidden__373c0__2y4YK"
                       aria-label="5 star rating"
                       role="img"
-                      style={ rating }
+                      style={rating}
                     >
                       <img
                         class="lemon--img__373c0__3GQUb offscreen__373c0__1KofL"
@@ -188,7 +201,8 @@ class RestaurantLeftReviewPart extends Component {
                       </span>
                       <span class="lemon--span__373c0__3997G display--inline__373c0__3JqBP margin-l1__373c0__1khIQ border-color--default__373c0__3-ifU">
                         <span class="lemon--span__373c0__3997G text__373c0__2Kxyz text-color--black-extra-light__373c0__2OyzO text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B">
-                          {this.props.restaurantProfile.OpeningTime} - {this.props.restaurantProfile.ClosingTime}
+                          {this.props.restaurantProfile.OpeningTime} -{' '}
+                          {this.props.restaurantProfile.ClosingTime}
                         </span>
                       </span>
                     </div>
@@ -213,7 +227,7 @@ class RestaurantLeftReviewPart extends Component {
               />
             ) : null}
 
-            {localStorage.getItem('token') ? (
+            {localStorage.getItem('role') ? (
               <a
                 onClick={this.openReviewForm}
                 class="lemon--a__373c0__IEZFH button__373c0__3lYgT primary__373c0__2ZWOb"
@@ -439,6 +453,9 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(RestaurantLeftReviewPart);
-
-// export default RestaurantLeftReviewPart;
+export default compose(
+  withApollo,
+  graphql(restaurantProfileQuery, { name: 'restaurantProfileQuery' }),
+  graphql(writeReview, { name: 'writeReview' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(RestaurantLeftReviewPart);

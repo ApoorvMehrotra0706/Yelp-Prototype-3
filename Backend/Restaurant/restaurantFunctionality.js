@@ -91,9 +91,7 @@ const restLogin = async (req) => {
 const fetchRestaurantProfile = async (req) => {
   let res = null;
   const RestaurantID = req.id;
-  const restProfile = await Restaurant.findOne({ RestaurantID }, (err, result) => {
-    if (result) res = result;
-  });
+  res = await Restaurant.findOne({ RestaurantID });
   return res;
 };
 

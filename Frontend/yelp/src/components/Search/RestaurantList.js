@@ -4,6 +4,7 @@ import './RestList.css';
 import Restaurant from './Restaurant';
 import { updateRestaurantArray } from '../../reducer/action-types';
 import MapDisplay from './MapDisplay';
+import { Redirect } from 'react-router';
 import { history } from '../../App';
 import { graphql, Query, withApollo } from 'react-apollo';
 import { flowRight as compose } from 'lodash';
@@ -17,6 +18,7 @@ class RestaurantList extends Component {
     this.state = {
       BackupRestaurantsList: [],
       mapCoordinates: [],
+      redirectVar: null,
     };
   }
 
@@ -113,10 +115,14 @@ class RestaurantList extends Component {
     );
   };
 
-  openRestaurantPage = (ID) => {
+  openRestaurantPage = (e, ID) => {
     localStorage.setItem('restaurantPageID', ID);
-    history.push('/RestaurantPage'); // Will be made
-    window.location.reload(false);
+    this.setState({
+      redirectVar: <Redirect to="/RestaurantPage" />,
+    });
+    // })
+    // history.push('/RestaurantPage'); // Will be made
+    // window.location.reload(false);
   };
 
   // handlePageClick = (e) => {
@@ -199,10 +205,10 @@ class RestaurantList extends Component {
 
   render() {
     let redirectVar = null;
+
     return (
       <div>
-        {' '}
-        {/* {<CustomerNavBar />} */}
+        {this.state.redirectVar} {/* {<CustomerNavBar />} */}
         <div className="lemon--div__09f24__1mboc spinnerContainer__09f24__2XcuX border-color--default__09f24__R1nRO background-color--white__09f24__2jFAt">
           <div className="lemon--div__09f24__1mboc mainContentContainer__09f24__1mGmV border-color--default__09f24__R1nRO">
             <div className="lemon--div__09f24__1mboc leftRailContainer__09f24__3fttY border-color--default__09f24__R1nRO">

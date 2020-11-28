@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-import cookie from 'react-cookies';
 import { Redirect } from 'react-router';
-import axios from 'axios';
-import serverUrl from '../../config';
 import './Home.css';
 // import { history } from '../../App';
 // import MenuBlock from '../../Customer/CommonArea/MenuBlock';
@@ -28,6 +25,7 @@ class Home extends Component {
         { ID: 3, Value: 'Cuisines' },
         { ID: 4, Value: 'Location' },
       ],
+      redirectVar: null,
     };
   }
 
@@ -121,14 +119,18 @@ class Home extends Component {
   };
 
   getRestaurants = (event) => {
-    history.push('/RestaurantList'); // Ask
+    event.preventDefault();
+    this.setState({
+      redirectVar: <Redirect to="/RestaurantList" />,
+    });
+    // history.push('/RestaurantList'); // Ask
   };
 
   render() {
     let redirectVar = null;
     // let block = null;
-    if (!localStorage.getItem('token')) {
-      console.log('token not found');
+    if (!localStorage.getItem('role')) {
+      console.log('role not found');
       redirectVar = null;
     } else {
       if (localStorage.getItem('role') === 'Customer') {
@@ -141,7 +143,7 @@ class Home extends Component {
     }
     return (
       <div>
-        {redirectVar}
+        {this.state.redirectVar}
         <div
           className="y-container homepage-hero"
           style={{

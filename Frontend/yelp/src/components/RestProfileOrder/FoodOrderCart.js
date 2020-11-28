@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-import serverUrl from '../../config';
 import { connect } from 'react-redux';
 import ReactPaginate from 'react-paginate';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restaurantProfileQuery } from '../../query/query';
 
 class FoodOrderCart extends Component {
   constructor(props) {
@@ -25,34 +26,62 @@ class FoodOrderCart extends Component {
     let index = this.state.foodCart.findIndex(
       (x) => x.ID === foodID && x.MenuCategory === category
     );
-    if(index >= 0)
-      return this.state.foodCart[index].Quantity;
+    if (index >= 0) return this.state.foodCart[index].Quantity;
     return 0;
-  }
-  
-  fetchMenu = (category, pageNo = 0) => {
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios
-      .get(
-        serverUrl + 'customer/menuFetch',
+  };
 
-        { 
-          params: { RestaurantID: localStorage.getItem('restaurantPageID'),
-                    pageNo, category},
-          withCredentials: true,
-        }
-      )
+  fetchMenu = (category, pageNo = 0) => {
+    this.props.client
+      .query({
+        query: restaurantProfileQuery,
+        variables: {
+          id: localStorage.getItem('restaurantPageID'),
+        },
+        fetchPolicy: 'network-only',
+      })
       .then((response) => {
-        let allFoodItems = response.data[0].map((item) => {
-          return {
-            ...item,
-            Quantity: this.getQuantityInFoodCart(item._id, category),
-          };
-        });
+        let allFoodItems = null;
+        if (category === 'APPETIZERS') {
+          allFoodItems = response.data.RestaurantProfile.Appetizers.map((item) => {
+            return {
+              ...item,
+              Quantity: this.getQuantityInFoodCart(item._id, category),
+            };
+          });
+        } else if (category === 'DESSERTS') {
+          allFoodItems = response.data.RestaurantProfile.Dessert.map((item) => {
+            return {
+              ...item,
+              Quantity: this.getQuantityInFoodCart(item._id, category),
+            };
+          });
+        } else if (category === 'MAIN_COURSE') {
+          allFoodItems = response.data.RestaurantProfile.Main_Course.map((item) => {
+            return {
+              ...item,
+              Quantity: this.getQuantityInFoodCart(item._id, category),
+            };
+          });
+        } else if (category === 'BEVERAGES') {
+          allFoodItems = response.data.RestaurantProfile.Beverage.map((item) => {
+            return {
+              ...item,
+              Quantity: this.getQuantityInFoodCart(item._id, category),
+            };
+          });
+        } else if (category === 'SALADS') {
+          allFoodItems = response.data.RestaurantProfile.Salad.map((item) => {
+            return {
+              ...item,
+              Quantity: this.getQuantityInFoodCart(item._id, category),
+            };
+          });
+        }
+
         let payload = {
           FoodMenu: allFoodItems,
-          PageCount: response.data[1],
-          Total: response.data[2]
+          // PageCount: response.data[1],
+          // Total: response.data[2]
         };
         this.props.updateMenuOrderData(payload);
       });
@@ -68,16 +97,12 @@ class FoodOrderCart extends Component {
       };
       this.props.updateMenuOrderData(payload);
     } else {
-      this.fetchMenu(category,0);
+      this.fetchMenu(category, 0);
       this.setState({
         openedCategory: category,
       });
     }
   };
-
-  handlePageClick = (e) => {
-    this.fetchMenu(this.state.openedCategory,e.selected);
-  }
 
   onchangeUpdateCartHandler = (event, FoodId, Price, FoodName) => {
     if (event.target.value === '' || event.target.value === 0) {
@@ -131,7 +156,7 @@ class FoodOrderCart extends Component {
           totalPrice,
         });
       }
-      
+
       index = this.props.menuOrder.FoodMenu.findIndex((x) => x._id === FoodId);
       let menu = [...this.props.menuOrder.FoodMenu];
       menu[index].Quantity = event.target.value;
@@ -227,7 +252,9 @@ class FoodOrderCart extends Component {
                   </tr>
                   {this.props.menuOrder.FoodMenu.map((food) => (
                     <tr>
-                      <td><img src={food.ImageURL} style={{width: '100px', height: '100px'}}></img></td>
+                      <td>
+                        <img src={food.ImageURL} style={{ width: '100px', height: '100px' }}></img>
+                      </td>
                       <td>{food.Dishname}</td>
                       <td>{food.Cuisine}</td>
                       <td>{food.Description}</td>
@@ -239,7 +266,12 @@ class FoodOrderCart extends Component {
                           min="0"
                           max="50"
                           onChange={(event) => {
-                            this.onchangeUpdateCartHandler(event, food._id, food.Price, food.Dishname);
+                            this.onchangeUpdateCartHandler(
+                              event,
+                              food._id,
+                              food.Price,
+                              food.Dishname
+                            );
                           }}
                           type="number"
                         />
@@ -247,7 +279,7 @@ class FoodOrderCart extends Component {
                     </tr>
                   ))}
                 </tbody>
-                <ReactPaginate
+                {/* <ReactPaginate
                   previousLabel={'prev'}
                   nextLabel={'next'}
                   breakLabel={'...'}
@@ -259,10 +291,9 @@ class FoodOrderCart extends Component {
                   containerClassName={'pagination'}
                   subContainerClassName={'pages pagination'}
                   activeClassName={'active'}
-                />
+                /> */}
               </table>
             )}
-            
 
             <div
               className=".job-form-section-group-styles__header--2Z5fi"
@@ -301,7 +332,9 @@ class FoodOrderCart extends Component {
                   </tr>
                   {this.props.menuOrder.FoodMenu.map((food) => (
                     <tr>
-                      <td><img src={food.ImageURL} style={{width: '100px', height: '100px'}}></img></td>
+                      <td>
+                        <img src={food.ImageURL} style={{ width: '100px', height: '100px' }}></img>
+                      </td>
                       <td>{food.Dishname}</td>
                       <td>{food.Cuisine}</td>
                       <td>{food.Description}</td>
@@ -313,7 +346,12 @@ class FoodOrderCart extends Component {
                           value={food.Quantity}
                           min="0"
                           onChange={(event) => {
-                            this.onchangeUpdateCartHandler(event, food._id, food.Price, food.Dishname);
+                            this.onchangeUpdateCartHandler(
+                              event,
+                              food._id,
+                              food.Price,
+                              food.Dishname
+                            );
                           }}
                           type="number"
                         />
@@ -374,7 +412,9 @@ class FoodOrderCart extends Component {
                   </tr>
                   {this.props.menuOrder.FoodMenu.map((food) => (
                     <tr>
-                      <td><img src={food.ImageURL} style={{width: '100px', height: '100px'}}></img></td>
+                      <td>
+                        <img src={food.ImageURL} style={{ width: '100px', height: '100px' }}></img>
+                      </td>
                       <td>{food.Dishname}</td>
                       <td>{food.Cuisine}</td>
                       <td>{food.Description}</td>
@@ -386,7 +426,12 @@ class FoodOrderCart extends Component {
                           min="0"
                           max="50"
                           onChange={(event) => {
-                            this.onchangeUpdateCartHandler(event, food._id, food.Price, food.Dishname);
+                            this.onchangeUpdateCartHandler(
+                              event,
+                              food._id,
+                              food.Price,
+                              food.Dishname
+                            );
                           }}
                           type="number"
                         />
@@ -447,7 +492,9 @@ class FoodOrderCart extends Component {
                   </tr>
                   {this.props.menuOrder.FoodMenu.map((food) => (
                     <tr>
-                      <td><img src={food.ImageURL} style={{width: '100px', height: '100px'}}></img></td>
+                      <td>
+                        <img src={food.ImageURL} style={{ width: '100px', height: '100px' }}></img>
+                      </td>
                       <td>{food.Dishname}</td>
                       <td>{food.Cuisine}</td>
                       <td>{food.Description}</td>
@@ -459,7 +506,12 @@ class FoodOrderCart extends Component {
                           min="0"
                           max="50"
                           onChange={(event) => {
-                            this.onchangeUpdateCartHandler(event, food._id, food.Price, food.Dishname);
+                            this.onchangeUpdateCartHandler(
+                              event,
+                              food._id,
+                              food.Price,
+                              food.Dishname
+                            );
                           }}
                           type="number"
                         />
@@ -518,7 +570,9 @@ class FoodOrderCart extends Component {
                   </tr>
                   {this.props.menuOrder.FoodMenu.map((food) => (
                     <tr>
-                      <td><img src={food.ImageURL} style={{width: '100px', height: '100px'}}></img></td>
+                      <td>
+                        <img src={food.ImageURL} style={{ width: '100px', height: '100px' }}></img>
+                      </td>
                       <td>{food.Dishname}</td>
                       <td>{food.Cuisine}</td>
                       <td>{food.Description}</td>
@@ -530,7 +584,12 @@ class FoodOrderCart extends Component {
                           min="0"
                           max="50"
                           onChange={(event) => {
-                            this.onchangeUpdateCartHandler(event, food._id, food.Price, food.Dishname);
+                            this.onchangeUpdateCartHandler(
+                              event,
+                              food._id,
+                              food.Price,
+                              food.Dishname
+                            );
                           }}
                           type="number"
                         />
@@ -578,4 +637,8 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(FoodOrderCart);
+export default compose(
+  withApollo,
+  graphql(restaurantProfileQuery, { name: 'restaurantProfileQuery' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(FoodOrderCart);

@@ -29,6 +29,7 @@ const {
   generateOrder,
   custLogin,
   custOrderSearchResults,
+  foodCartEntry,
 } = require('../Customer/customerFunctionality');
 const {
   restaurantSignup,
@@ -619,12 +620,18 @@ const OrderCartType = new GraphQLObjectType({
       type: GraphQLFloat,
     },
     Quantity: {
-      type: GraphQLInt,
+      type: GraphQLString,
     },
     TotalPrice: {
       type: GraphQLFloat,
     },
     RestaurantID: {
+      type: GraphQLString,
+    },
+    CustomerID: {
+      type: GraphQLString,
+    },
+    Result: {
       type: GraphQLString,
     },
   }),
@@ -678,6 +685,12 @@ const StateType = new GraphQLObjectType({
 const OrderInputType = new GraphQLInputObjectType({
   name: 'OrderInputType',
   fields: () => ({
+    ID: {
+      type: GraphQLString,
+    },
+    MenuCategory: {
+      type: GraphQLString,
+    },
     RestaurantID: {
       type: GraphQLString,
     },
@@ -736,7 +749,7 @@ const OrderCartInputType = new GraphQLInputObjectType({
       type: GraphQLFloat,
     },
     Quantity: {
-      type: GraphQLInt,
+      type: GraphQLString,
     },
     TotalPrice: {
       type: GraphQLFloat,
@@ -1286,9 +1299,9 @@ const Mutation = new GraphQLObjectType({
         RestaurantName: {
           type: GraphQLString,
         },
-        ImageUrl: {
-          type: GraphQLString,
-        },
+        // ImageUrl: {
+        //   type: GraphQLString,
+        // },
         Ratings: {
           type: GraphQLInt,
         },
@@ -1318,9 +1331,9 @@ const Mutation = new GraphQLObjectType({
         CustomerName: {
           type: GraphQLString,
         },
-        ImageURL: {
-          type: GraphQLString,
-        },
+        // ImageURL: {
+        //   type: GraphQLString,
+        // },
         CustomerGender: {
           type: GraphQLString,
         },
@@ -1357,6 +1370,38 @@ const Mutation = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return generateOrder(args);
+      },
+    },
+    foodCartEntry: {
+      type: OrderCartType,
+      args: {
+        OrderID: {
+          type: GraphQLString,
+        },
+        Dishname: {
+          type: GraphQLString,
+        },
+        Price: {
+          type: GraphQLFloat,
+        },
+        Quantity: {
+          type: GraphQLString,
+        },
+        TotalPrice: {
+          type: GraphQLFloat,
+        },
+        RestaurantID: {
+          type: GraphQLString,
+        },
+        CustomerID: {
+          type: GraphQLString,
+        },
+        Result: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return foodCartEntry(args);
       },
     },
     updateOrder: {

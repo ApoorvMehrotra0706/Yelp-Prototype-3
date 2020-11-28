@@ -10,6 +10,7 @@ const ordersCartSchema = new Schema(
     Quantity: { type: Number, required: true },
     TotalPrice: { type: Number, required: true },
     RestaurantID: { type: String, required: true },
+    CustomerID: { type: String, required: true },
   },
   {
     versionKey: false,

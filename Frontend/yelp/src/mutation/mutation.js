@@ -231,6 +231,91 @@ const updateFood = gql`
   }
 `;
 
+const writeReview = gql`
+  mutation(
+    $RestaurantID: String
+    $RestaurantName: String
+    $Review: String
+    $Ratings: Int
+    $CustomerID: String
+    $CustomerName: String
+  ) {
+    writeReview(
+      RestaurantID: $RestaurantID
+      RestaurantName: $RestaurantName
+      Review: $Review
+      Ratings: $Ratings
+      CustomerID: $CustomerID
+      CustomerName: $CustomerName
+    ) {
+      Result
+    }
+  }
+`;
+
+const generateOrder = gql`
+  mutation(
+    $RestaurantID: String
+    $RestaurantName: String
+    $CustomerID: String
+    $CustomerName: String
+    $CustomerGender: String
+    $CustomerContact: String
+    $CustomerYelpingSince: String
+    $Date: String
+    $Bill: Float
+    $StatusID: Int
+    $Status: String
+    $State: String
+    $Address: String
+    $DeliveryMode: String
+  ) {
+    generateOrder(
+      RestaurantID: $RestaurantID
+      RestaurantName: $RestaurantName
+      CustomerID: $CustomerID
+      CustomerName: $CustomerName
+      CustomerGender: $CustomerGender
+      CustomerContact: $CustomerContact
+      CustomerYelpingSince: $CustomerYelpingSince
+      Date: $Date
+      Bill: $Bill
+      StatusID: $StatusID
+      Status: $Status
+      State: $State
+      Address: $Address
+      DeliveryMode: $DeliveryMode
+    ) {
+      Result
+      _id
+    }
+  }
+`;
+
+const foodCartEntry = gql`
+  mutation(
+    $OrderID: String
+    $Dishname: String
+    $Price: Float
+    $Quantity: String
+    $TotalPrice: Float
+    $RestaurantID: String
+    $CustomerID: String
+  ) {
+    foodCartEntry(
+      OrderID: $OrderID
+      Dishname: $Dishname
+      Price: $Price
+      Quantity: $Quantity
+      TotalPrice: $TotalPrice
+      RestaurantID: $RestaurantID
+      CustomerID: $CustomerID
+    ) {
+      Result
+    }
+  }
+`;
+
 export {
   restSignUp,
   custSignUp,
@@ -242,4 +327,7 @@ export {
   insertFood,
   deleteFood,
   updateFood,
+  writeReview,
+  generateOrder,
+  foodCartEntry,
 };

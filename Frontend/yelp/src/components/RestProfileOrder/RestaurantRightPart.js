@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-import serverUrl from '../../config';
 import FoodOrderCart from './FoodOrderCart';
 import { connect } from 'react-redux';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restaurantProfileQuery } from '../../query/query';
+import { generateOrder, foodCartEntry } from '../../mutation/mutation';
 
 class RestaurantRightPart extends Component {
   constructor(props) {
@@ -34,43 +36,75 @@ class RestaurantRightPart extends Component {
   orderFood = (foodCart, Price) => {
     if (Price === 0) alert('Please select food items to place order');
     else {
-      const data = {
-        RestaurantID: localStorage.getItem('restaurantPageID'),
-        RestaurantName: this.props.restaurantProfile.Name,
-        CustomerID: localStorage.getItem('user_id'),
-        CustomerName: this.props.customerData.Name,
-        ImageURL: this.props.customerData.ImageURL,
-        CustomerGender: this.props.customerData.Gender,
-        CustomerContact: this.props.customerData.Contact,
-        CustomerYelpingSince: this.props.customerData.YelpingSince,
-        Date: new Date(),
-        Bill: Price,
-        StatusID: 1,
-        Status: 'Order Received',
-        State: 'New',
-        
-        Orders: foodCart,
-        Address: this.state.address,
-        DeliveryMode: this.state.currentMode,
-      };
-      axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-      axios.defaults.withCredentials = true;
-      //make a post request with the user data
-      axios.post(serverUrl + 'customer/generateOrder', data).then(
-        (response) => {
-          if (response.status === 200) {
+      // const data = {
+      //   RestaurantID: localStorage.getItem('restaurantPageID'),
+      //   RestaurantName: this.props.restaurantProfile.Name,
+      //   CustomerID: localStorage.getItem('user_id'),
+      //   CustomerName: this.props.customerData.Name,
+      //   ImageURL: this.props.customerData.ImageURL,
+      //   CustomerGender: this.props.customerData.Gender,
+      //   CustomerContact: this.props.customerData.Contact,
+      //   CustomerYelpingSince: this.props.customerData.YelpingSince,
+      //   Date: new Date(),
+      //   Bill: Price,
+      //   StatusID: 1,
+      //   Status: 'Order Received',
+      //   State: 'New',
+
+      //   Orders: foodCart,
+      //   Address: this.state.address,
+      //   DeliveryMode: this.state.currentMode,
+      // };
+      this.props.client
+        .mutate({
+          mutation: generateOrder,
+          variables: {
+            RestaurantID: localStorage.getItem('restaurantPageID'),
+            RestaurantName: this.props.restaurantProfile.Name,
+            CustomerID: localStorage.getItem('CustomerID'),
+            CustomerName: this.props.customerData.Name,
+            CustomerGender: this.props.customerData.Gender,
+            CustomerContact: this.props.customerData.Contact,
+            CustomerYelpingSince: this.props.customerData.YelpingSince,
+            Date: new Date(),
+            Bill: Price,
+            StatusID: 1,
+            Status: 'Order Received',
+            State: 'New',
+
+            Address: this.state.address,
+            DeliveryMode: this.state.currentMode,
+            // OrderCartType: [foodCart],
+          },
+        })
+        .then((response) => {
+          if (response.data.generateOrder.Result === 'Order saved') {
+            foodCart.map((food) => {
+              this.props.client
+                .mutate({
+                  mutation: foodCartEntry,
+                  variables: {
+                    OrderID: response.data.generateOrder._id,
+                    Dishname: food.Dishname,
+                    Price: food.Price,
+                    Quantity: food.Quantity,
+                    TotalPrice: food.TotalPrice,
+                    RestaurantID: localStorage.getItem('restaurantPageID'),
+                    CustomerID: localStorage.getItem('CustomerID'),
+                  },
+                })
+                .then((response) => {});
+            });
+
             this.setState({
               showFoodMenu: !this.state.showFoodMenu,
             });
             alert('Order Placed');
           }
-        },
-        (error) => {
-        }
-      );
+        });
       this.setState({
         address: '',
-      })
+      });
       const payload = {
         FoodMenu: [],
         PageCount: '',
@@ -205,7 +239,6 @@ class RestaurantRightPart extends Component {
                         <div class="lemon--div__373c0__1mboc margin-t1__373c0__oLmO6 border-color--default__373c0__3-ifU">
                           <div class="lemon--div__373c0__1mboc border-color--default__373c0__3-ifU">
                             <div class="lemon--div__373c0__1mboc border-color--default__373c0__3-ifU">
-                              
                               {this.state.showFoodMenu ? (
                                 <FoodOrderCart
                                   openFoodMenu={() => this.openFoodMenu()}
@@ -216,10 +249,11 @@ class RestaurantRightPart extends Component {
                                   }}
                                 />
                               ) : null}
-                              {(localStorage.getItem('token')) && this.state.currentMode === 'Delivery' ? (
+                              {localStorage.getItem('token') &&
+                              this.state.currentMode === 'Delivery' ? (
                                 <p>Please Enter Delivery Address before ordering!!!</p>
                               ) : null}
-                              {localStorage.getItem('token') ? (
+                              {localStorage.getItem('role') ? (
                                 <button
                                   disabled={
                                     this.state.currentMode === 'Delivery' &&
@@ -281,4 +315,10 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(RestaurantRightPart);
+export default compose(
+  withApollo,
+  graphql(restaurantProfileQuery, { name: 'restaurantProfileQuery' }),
+  graphql(generateOrder, { name: 'generateOrder' }),
+  graphql(foodCartEntry, { name: 'foodCartEntry' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(RestaurantRightPart);

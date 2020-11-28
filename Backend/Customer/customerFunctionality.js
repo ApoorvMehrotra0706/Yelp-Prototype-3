@@ -261,19 +261,27 @@ const generateOrder = async (req) => {
   const order = new Orders({ ...req });
   const res = {};
   const result = await order.save();
-  const cart = [...req.OrderCartType];
-  const completeCart = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const food of cart) {
-    // eslint-disable-next-line no-underscore-dangle
-    const cartEntry = { ...food, OrderID: result._id };
-    completeCart.push(cartEntry);
-  }
-  await OrderCart.insertMany(completeCart);
+  // eslint-disable-next-line no-underscore-dangle
+  res._id = result._id;
+  // const cart = [...req.OrderCartType];
+  // const completeCart = [];
+  // // eslint-disable-next-line no-restricted-syntax
+  // for (const food of cart) {
+  //   // eslint-disable-next-line no-underscore-dangle
+  //   const cartEntry = { ...food, OrderID: result._id };
+  //   completeCart.push(cartEntry);
+  // }
+  // await OrderCart.insertMany(completeCart);
   res.Result = 'Order saved';
   return res;
 };
 
+const foodCartEntry = async (req) => {
+  await Orders.updateOne({ _id: req.OrderID }, { $push: { OrderCartType: req } });
+  const res = {};
+  res.Result = 'Inserted the food entry';
+  return res;
+};
 const custOrderSearchResults = async (req) => {
   const res = {};
   let orderDetails = [];
@@ -306,4 +314,5 @@ module.exports = {
   generateOrder,
   custOrderSearchResults,
   updateCustContact,
+  foodCartEntry,
 };
