@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import '../../App.css';
-import axios from 'axios';
-import cookie from 'react-cookies';
 import { Redirect } from 'react-router';
 import serverUrl from '../../config';
 import { connect } from 'react-redux';
 import jwt_decode from 'jwt-decode';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restLogin } from '../../mutation/mutation';
 
 // Define a Login Component
 class RestaurantLogin extends Component {
@@ -52,22 +53,19 @@ class RestaurantLogin extends Component {
     var headers = new Headers();
     // prevent page from refresh
     e.preventDefault();
-    const data = {
-      emailID: this.state.emailID,
-      password: this.state.password,
-    };
-    // set the with credentials to true
-    axios.defaults.withCredentials = true;
-    // make a post request with the user data
-    axios
-      .post(serverUrl + 'restaurant/loginRestaurant', data)
+    this.props.client
+      .mutate({
+        mutation: restLogin,
+        variables: {
+          emailID: this.state.emailID,
+          password: this.state.password,
+        },
+      })
       .then((response) => {
-        console.log('Status Code : ', response.status);
-        localStorage.setItem('token',response.data);
-        const decoded = jwt_decode(localStorage.getItem('token').split(' ')[1]);
-        localStorage.setItem('user_id', decoded._id);
-        localStorage.setItem('username', decoded.username);
-        localStorage.setItem('role',decoded.role);
+        console.log('Status Code : ', response.data.restLogin.Result);
+        localStorage.setItem('RestaurantID', response.data.restLogin._id);
+        localStorage.setItem('username', response.data.restLogin.emailID);
+        localStorage.setItem('role', response.data.restLogin.Role);
         if (response.status === 200) {
           this.setState({
             authFlag: true,
@@ -94,7 +92,7 @@ class RestaurantLogin extends Component {
   render() {
     //redirect based on successful login
     let redirectVar = null;
-    if (localStorage.getItem('token')) {
+    if (localStorage.getItem('role') === 'Restaurant') {
       redirectVar = <Redirect to="/restaurantProfile" />;
     }
     return (
@@ -163,5 +161,9 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-//export Login Component
-export default connect(null, mapDispatchToProps)(RestaurantLogin);
+// export Login Component
+export default compose(
+  withApollo,
+  graphql(restLogin, { name: 'restLogin' }),
+  connect(null, mapDispatchToProps)
+)(RestaurantLogin);

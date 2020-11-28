@@ -1134,7 +1134,7 @@ const Mutation = new GraphQLObjectType({
       type: RestaurantType,
       args: {
         ID: {
-          type: GraphQLID,
+          type: GraphQLString,
         },
         name: {
           type: GraphQLString,
@@ -1142,9 +1142,9 @@ const Mutation = new GraphQLObjectType({
         RestaurantID: {
           type: GraphQLID,
         },
-        emailID: {
-          type: GraphQLString,
-        },
+        // emailID: {
+        //   type: GraphQLString,
+        // },
         contact: {
           type: GraphQLString,
         },

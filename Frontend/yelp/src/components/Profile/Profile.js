@@ -3,6 +3,10 @@ import axios from 'axios';
 import serverUrl from '../../config';
 import '../FirstPage/RestaurantHome.css';
 import { connect } from 'react-redux';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restaurantProfileQuery } from '../../query/query';
+import { updateRestProfile } from '../../mutation/mutation';
 
 class Profile extends Component {
   constructor(props) {
@@ -47,61 +51,58 @@ class Profile extends Component {
   }
 
   componentDidMount() {
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-
-    axios
-      .get(serverUrl + 'restaurant/restaurantProfile', {
-        params: { RestaurantID: localStorage.getItem('user_id') },
-        withCredentials: true,
+    this.props.client
+      .query({
+        query: restaurantProfileQuery,
+        variables: {
+          id: localStorage.getItem('RestaurantID'),
+        },
+        fetchPolicy: 'network-only',
       })
       .then(
         (response) => {
-          if (response.status === 200) {
-            localStorage.setItem('Name', response.data.name);
-            localStorage.setItem('Image', response.data.ImageURL);
-            let payload = {
-              Name: response.data.name,
-              Email: response.data.emailID,
-              Country: response.data.country,
-              StateName: response.data.state,
-              City: response.data.city,
-              Street: response.data.streetAddress,
-              Zip: response.data.zip,
-              Contact: response.data.contact,
-              Opening_Time: response.data.Opening_Time,
-              Closing_Time: response.data.Closing_Time,
-              ImageUrl: response.data.ImageURL,
-              CurbsidePickup: response.data.Curbside_Pickup,
-              DineIn: response.data.Dine_In,
-              YelpDelivery: response.data.Yelp_Delivery,
-              isFormDisable: true,
-            };
+          localStorage.setItem('Name', response.data.RestaurantProfile.name);
+          let payload = {
+            Name: response.data.RestaurantProfile.name,
+            Email: response.data.RestaurantProfile.emailID,
+            Country: response.data.RestaurantProfile.country,
+            StateName: response.data.RestaurantProfile.state,
+            City: response.data.RestaurantProfile.city,
+            Street: response.data.RestaurantProfile.streetAddress,
+            Zip: response.data.RestaurantProfile.zip,
+            Contact: response.data.RestaurantProfile.contact,
+            Opening_Time: response.data.RestaurantProfile.Opening_Time,
+            Closing_Time: response.data.RestaurantProfile.Closing_Time,
+            CurbsidePickup: response.data.RestaurantProfile.Curbside_Pickup,
+            DineIn: response.data.RestaurantProfile.Dine_In,
+            YelpDelivery: response.data.RestaurantProfile.Yelp_Delivery,
+            isFormDisable: true,
+          };
 
-            this.props.updateRestaurantInfo(payload);
-            payload = {
-              Name: response.data.name,
-            };
+          this.props.updateRestaurantInfo(payload);
+          payload = {
+            Name: response.data.name,
+          };
 
-            this.props.updateNameInfo(payload);
+          this.props.updateNameInfo(payload);
 
-            this.setState({
-              Name: this.props.restaurantData.Name,
-              Email: this.props.restaurantData.Email,
-              Country: this.props.restaurantData.Country,
-              StateName: this.props.restaurantData.StateName,
-              City: this.props.restaurantData.City,
-              Street: this.props.restaurantData.Street,
-              Zip: this.props.restaurantData.Zip,
-              Contact: this.props.restaurantData.Contact,
-              Opening_Time: this.props.restaurantData.Opening_Time,
-              Closing_Time: this.props.restaurantData.Closing_Time,
-              ImageUrl: this.props.restaurantData.ImageUrl,
-              CurbsidePickup: this.props.restaurantData.CurbsidePickup,
-              DineIn: this.props.restaurantData.DineIn,
-              YelpDelivery: this.props.restaurantData.YelpDelivery,
-              isFormDisable: true,
-            });
-          }
+          this.setState({
+            Name: this.props.restaurantData.Name,
+            Email: this.props.restaurantData.Email,
+            Country: this.props.restaurantData.Country,
+            StateName: this.props.restaurantData.StateName,
+            City: this.props.restaurantData.City,
+            Street: this.props.restaurantData.Street,
+            Zip: this.props.restaurantData.Zip,
+            Contact: this.props.restaurantData.Contact,
+            Opening_Time: this.props.restaurantData.Opening_Time,
+            Closing_Time: this.props.restaurantData.Closing_Time,
+            ImageUrl: this.props.restaurantData.ImageUrl,
+            CurbsidePickup: this.props.restaurantData.CurbsidePickup,
+            DineIn: this.props.restaurantData.DineIn,
+            YelpDelivery: this.props.restaurantData.YelpDelivery,
+            isFormDisable: true,
+          });
         },
         (error) => {
           console.log(error.response.data);
@@ -159,41 +160,6 @@ class Profile extends Component {
         submitError: false,
       });
       this.props.updateRestaurantInfo(initialData);
-    }
-  };
-
-  onChangeFileHandler = (event) => {
-    if (event.target.files.length === 1) {
-      event.preventDefault();
-      let formData = new FormData();
-      formData.append('file', event.target.files[0], event.target.files[0].name);
-      axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-      axios({
-        method: 'post',
-        url: serverUrl + 'restaurant/uploadRestaurantProfilePic',
-        // data: formData,
-        data: formData,
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-        .then((response) => {
-          console.log('Status Code : ', response.status);
-          if (parseInt(response.status) === 200) {
-            console.log('Product Saved');
-            let payload = {
-              ImageUrl: response.data,
-            };
-
-            this.props.updateRestaurantInfo(payload);
-          } else if (parseInt(response.status) === 400) {
-            console.log(response.data);
-          }
-        })
-        .catch((error) => {
-          this.setState({
-            errorMsg: error.message,
-            authFlag: false,
-          });
-        });
     }
   };
 
@@ -384,29 +350,48 @@ class Profile extends Component {
         user_id: localStorage.getItem('user_id'),
       };
       // set the with credentials to true
-      axios.defaults.withCredentials = true;
-      // make a post request with the user data
-      axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-      axios.post(serverUrl + 'restaurant/updateRestProfile', data).then(
-        (response) => {
-          console.log('Status Code : ', response.status);
-          if (response.status === 200) {
-            localStorage.setItem('Name', this.props.restaurantData.Name);
-            localStorage.setItem('Image', this.props.restaurantData.ImageURL);
-            console.log('Profile Updated');
+      // axios.defaults.withCredentials = true;
+      // // make a post request with the user data
+      // axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+      // axios.post(serverUrl + 'restaurant/updateRestProfile', data)
+      this.props.client
+        .mutate({
+          mutation: updateRestProfile,
+          variables: {
+            ID: localStorage.getItem('RestaurantID'),
+            name: this.props.restaurantData.Name,
+            contact: this.props.restaurantData.Contact,
+            streetAddress: this.props.restaurantData.Street,
+            city: this.props.restaurantData.City,
+            state: this.props.restaurantData.StateName,
+            country: this.props.restaurantData.Country,
+            zip: this.props.restaurantData.Zip,
+            Opening_Time: this.props.restaurantData.Opening_Time,
+            Closing_Time: this.props.restaurantData.Closing_Time,
+            Curbside_Pickup: this.props.restaurantData.CurbsidePickup,
+            Dine_In: this.props.restaurantData.DineIn,
+            Yelp_Delivery: this.props.restaurantData.YelpDelivery,
+          },
+        })
+        .then(
+          (response) => {
+            console.log('Status Code : ', response.status);
+            if (response.data.updateRestProfile.Result === 'Updated Restaurant Profile') {
+              localStorage.setItem('Name', this.props.restaurantData.Name);
+              console.log('Profile Updated');
+              this.setState({
+                isFormDisable: true,
+                submitError: false,
+              });
+            }
+          },
+          (error) => {
             this.setState({
-              isFormDisable: true,
+              submitErrorBlock: error.response.data,
               submitError: false,
             });
           }
-        },
-        (error) => {
-          this.setState({
-            submitErrorBlock: error.response.data,
-            submitError: false,
-          });
-        }
-      );
+        );
     } else {
       this.setState({
         submitErrorBlock: validateCheck,
@@ -440,7 +425,7 @@ class Profile extends Component {
           id="signup-form"
         >
           <fieldset disabled={this.state.isFormDisable && 'disabled'}>
-            <h4>
+            {/* <h4>
               Your Profile Photo
               <strong>
                 <a href="/#">
@@ -454,8 +439,8 @@ class Profile extends Component {
                   />
                 </a>
               </strong>
-            </h4>
-            <div class="photo-box pb-m">
+            </h4> */}
+            {/* <div class="photo-box pb-m">
               <a
                 class="js-analytics-click"
                 data-analytics-label="user-photo"
@@ -473,7 +458,7 @@ class Profile extends Component {
                   // src="https://s3-media0.fl.yelpcdn.com/assets/srv0/yelp_styleguide/bf5ff8a79310/assets/img/default_avatars/user_medium_square.png"
                 />
               </a>
-            </div>
+            </div> */}
             <div class="js-password-meter-container">
               <ul>
                 <li style={{ width: '40%' }}>
@@ -734,4 +719,10 @@ const mapDispatchToProps = (dispatch) => {
     },
   };
 };
-export default connect(mapStateToProps, mapDispatchToProps)(Profile);
+
+export default compose(
+  withApollo,
+  graphql(restaurantProfileQuery, { name: 'restaurantProfileQuery' }),
+  graphql(updateRestProfile, { name: 'updateRestProfile' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(Profile);

@@ -128,4 +128,59 @@ const updateCustContact = gql`
   }
 `;
 
-export { restSignUp, custSignUp, custLogin, updateCustProfile, updateCustContact };
+const restLogin = gql`
+  mutation($emailID: String, $password: String) {
+    restLogin(emailID: $emailID, password: $password) {
+      Result
+      _id
+      emailID
+      Role
+    }
+  }
+`;
+
+const updateRestProfile = gql`
+  mutation(
+    $ID: String
+    $name: String
+    $contact: String
+    $streetAddress: String
+    $city: String
+    $state: String
+    $country: String
+    $zip: Int
+    $Opening_Time: String
+    $Closing_Time: String
+    $Curbside_Pickup: Boolean
+    $Dine_In: Boolean
+    $Yelp_Delivery: Boolean
+  ) {
+    updateRestProfile(
+      ID: $ID
+      name: $name
+      contact: $contact
+      streetAddress: $streetAddress
+      city: $city
+      state: $state
+      country: $country
+      zip: $zip
+      Opening_Time: $Opening_Time
+      Closing_Time: $Closing_Time
+      Curbside_Pickup: $Curbside_Pickup
+      Dine_In: $Dine_In
+      Yelp_Delivery: $Yelp_Delivery
+    ) {
+      Result
+    }
+  }
+`;
+
+export {
+  restSignUp,
+  custSignUp,
+  custLogin,
+  updateCustProfile,
+  updateCustContact,
+  restLogin,
+  updateRestProfile,
+};

@@ -44,4 +44,28 @@ const customerProfileQuery = gql`
   }
 `;
 
-export { staticDataQuery, customerProfileQuery };
+const restaurantProfileQuery = gql`
+  query RestaurantProfile($id: String) {
+    RestaurantProfile(id: $id) {
+      name
+      emailID
+      contact
+      streetAddress
+      city
+      state
+      country
+      zip
+      Description
+      Opening_Time
+      Closing_Time
+      Curbside_Pickup
+      Dine_In
+      Yelp_Delivery
+      Latitude
+      Longitude
+      TotalReviewCount
+      TotalRatings
+    }
+  }
+`;
+export { staticDataQuery, customerProfileQuery, restaurantProfileQuery };

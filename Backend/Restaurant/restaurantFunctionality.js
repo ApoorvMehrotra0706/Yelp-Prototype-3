@@ -76,7 +76,9 @@ const restLogin = async (req) => {
   if (loginResult) {
     if (await bcrypt.compare(req.password, loginResult.Password)) {
       res.Result = 'Login successful';
-      // eslint-disable-next-line no-else-return
+      res._id = loginResult._id;
+      res.emailID = loginResult.emailID;
+      res.Role = loginResult.Role;
     } else {
       res.Result = 'Invalid credentails';
     }
