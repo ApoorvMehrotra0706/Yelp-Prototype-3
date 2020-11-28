@@ -65,8 +65,6 @@ class RestaurantLeftReviewPart extends Component {
   };
   submitReview = (event, review, rating) => {
     event.preventDefault();
-    let Date = new Date();
-    Date = Date.toString();
     this.props.client
       .mutate({
         mutation: writeReview,
@@ -74,11 +72,10 @@ class RestaurantLeftReviewPart extends Component {
           RestaurantID: localStorage.getItem('restaurantPageID'),
           RestaurantName: this.props.restaurantProfile.Name,
           Review: this.props.customerReview.review,
-          Ratings: this.props.customerReview.rating,
+          Ratings: Number(this.props.customerReview.rating),
           CustomerID: localStorage.getItem('CustomerID'),
           CustomerName: this.props.customerData.Name,
           // ImageUrl: this.props.customerData.ImageURL,
-          Date: Date,
         },
       })
       .then(

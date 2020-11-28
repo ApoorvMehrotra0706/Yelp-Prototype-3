@@ -9,7 +9,6 @@ const MainCourse = require('../models/Main_Course');
 const Salads = require('../models/Salads');
 const Desserts = require('../models/Desserts');
 const Orders = require('../models/OrdersModel');
-const OrderCart = require('../models/OrdersCart');
 
 const custSignup = async (req) => {
   const res = {};
@@ -240,7 +239,7 @@ const restSearchResults = async (req) => {
 
 const writeAReview = async (req) => {
   const res = {};
-  const review = new Review({ ...req });
+  const review = new Review({ ...req, Date: new Date() });
   await review.save();
   await Restaurant.findOne({ RestaurantID: req.RestaurantID }, async (error, result) => {
     const totalReviewCount = Number(result.TotalReviewCount);

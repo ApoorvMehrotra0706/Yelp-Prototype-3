@@ -242,7 +242,6 @@ class FoodOrderCart extends Component {
               <table id="customers">
                 <tbody>
                   <tr>
-                    <th>Image</th>
                     <th>Food Item</th>
                     <th>Cuisine</th>
                     <th>Description</th>
@@ -252,9 +251,6 @@ class FoodOrderCart extends Component {
                   </tr>
                   {this.props.menuOrder.FoodMenu.map((food) => (
                     <tr>
-                      <td>
-                        <img src={food.ImageURL} style={{ width: '100px', height: '100px' }}></img>
-                      </td>
                       <td>{food.Dishname}</td>
                       <td>{food.Cuisine}</td>
                       <td>{food.Description}</td>
