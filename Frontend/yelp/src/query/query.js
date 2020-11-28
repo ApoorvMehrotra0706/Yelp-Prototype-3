@@ -108,4 +108,34 @@ const restaurantProfileQuery = gql`
     }
   }
 `;
-export { staticDataQuery, customerProfileQuery, restaurantProfileQuery };
+
+const searchRestaurantQuery = gql`
+  query SearchRestaurant($filter: String, $searchString: String) {
+    SearchRestaurant(filter: $filter, searchString: $searchString) {
+      RestaurantSearchList {
+        _id
+        name
+        RestaurantID
+        emailID
+        contact
+        streetAddress
+        city
+        state
+        country
+        zip
+        Description
+        Opening_Time
+        Closing_Time
+        Curbside_Pickup
+        Dine_In
+        Yelp_Delivery
+        Latitude
+        Longitude
+        TotalReviewCount
+        TotalRatings
+      }
+    }
+  }
+`;
+
+export { staticDataQuery, customerProfileQuery, restaurantProfileQuery, searchRestaurantQuery };

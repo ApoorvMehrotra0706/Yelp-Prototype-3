@@ -72,7 +72,7 @@ class Restaurant extends Component {
                                 name=""
                                 rel=""
                               >
-                                <img
+                                {/* <img
                                   class="lemon--img__09f24__3GQUb photo-box-img__09f24__3F3c5"
                                   src={
                                     this.props.restaurant.ImageUrl !== null &&
@@ -92,7 +92,7 @@ class Restaurant extends Component {
                                   height="100%"
                                   width="100%"
                                   loading="auto"
-                                />
+                                /> */}
                               </a>
                             </div>
                           </div>

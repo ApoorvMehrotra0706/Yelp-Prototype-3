@@ -32,55 +32,48 @@ class Home extends Component {
   }
 
   componentDidMount() {
-    axios
-      .get(
-        serverUrl + 'customer/fetchSearchStrings', //Ask
-
-        { withCredentials: true }
-      )
-      .then((response) => {
-        let RestaurantNameStrings = response.data[6].map((strings) => {
-          return strings.name;
-        });
-        let AppetizerStrings = response.data[0].map((strings) => {
-          return strings.Dishname;
-        });
-        let BeveragesStrings = response.data[1].map((strings) => {
-          return strings.Dishname;
-        });
-        let MainCoureStrings = response.data[2].map((strings) => {
-          return strings.Dishname;
-        });
-        let SaladsStrings = response.data[3].map((strings) => {
-          return strings.Dishname;
-        });
-        let DessertsStrings = response.data[4].map((strings) => {
-          return strings.Dishname;
-        });
-        let FoodItemsStrings = [ ...AppetizerStrings, ...BeveragesStrings, ...MainCoureStrings, ...SaladsStrings, ...DessertsStrings];
-        
-
-
-        
-        let CuisinesStrings = response.data[5].map((strings) => {
-          return strings.CuisineName;
-        });
-        let LocationStrings = response.data[6].map((strings) => {
-          return (((((strings.state.concat(', ')).concat(strings.city)).concat(', ')).concat(strings.streetAddress)).concat(',')).concat(strings.zip);
-        });
-
-        console.log(response.data);
-        let payload = {
-          RestaurantNameStrings,
-          FoodItemsStrings,
-          CuisinesStrings,
-          LocationStrings,
-        };
-        this.props.updateSeprateStrings(payload);
-      });
-
-    localStorage.setItem('SearchedString', '');
-    localStorage.setItem('SearchFilter', '');
+    // axios
+    //   .get(
+    //     serverUrl + 'customer/fetchSearchStrings', //Ask
+    //     { withCredentials: true }
+    //   )
+    //   .then((response) => {
+    //     let RestaurantNameStrings = response.data[6].map((strings) => {
+    //       return strings.name;
+    //     });
+    //     let AppetizerStrings = response.data[0].map((strings) => {
+    //       return strings.Dishname;
+    //     });
+    //     let BeveragesStrings = response.data[1].map((strings) => {
+    //       return strings.Dishname;
+    //     });
+    //     let MainCoureStrings = response.data[2].map((strings) => {
+    //       return strings.Dishname;
+    //     });
+    //     let SaladsStrings = response.data[3].map((strings) => {
+    //       return strings.Dishname;
+    //     });
+    //     let DessertsStrings = response.data[4].map((strings) => {
+    //       return strings.Dishname;
+    //     });
+    //     let FoodItemsStrings = [ ...AppetizerStrings, ...BeveragesStrings, ...MainCoureStrings, ...SaladsStrings, ...DessertsStrings];
+    //     let CuisinesStrings = response.data[5].map((strings) => {
+    //       return strings.CuisineName;
+    //     });
+    //     let LocationStrings = response.data[6].map((strings) => {
+    //       return (((((strings.state.concat(', ')).concat(strings.city)).concat(', ')).concat(strings.streetAddress)).concat(',')).concat(strings.zip);
+    //     });
+    //     console.log(response.data);
+    //     let payload = {
+    //       RestaurantNameStrings,
+    //       FoodItemsStrings,
+    //       CuisinesStrings,
+    //       LocationStrings,
+    //     };
+    //     this.props.updateSeprateStrings(payload);
+    //   });
+    // localStorage.setItem('SearchedString', '');
+    // localStorage.setItem('SearchFilter', '');
     //localStorage.setItem('SearchedString', '');
   }
 

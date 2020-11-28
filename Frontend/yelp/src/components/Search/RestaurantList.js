@@ -2,12 +2,12 @@ import React, { Component } from 'react';
 import './Restaurant.css';
 import './RestList.css';
 import Restaurant from './Restaurant';
-import axios from 'axios';
-import serverUrl from '../../config';
 import { updateRestaurantArray } from '../../reducer/action-types';
 import MapDisplay from './MapDisplay';
 import { history } from '../../App';
-import ReactPaginate from 'react-paginate';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { searchRestaurantQuery } from '../../query/query';
 
 import { connect } from 'react-redux';
 
@@ -22,42 +22,56 @@ class RestaurantList extends Component {
 
   componentDidMount() {
     console.log('inside Signup');
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios
-      .get(serverUrl + 'customer/fetchRestaurantResults', {
-        // Do
-        params: {
+    // axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+    // axios
+    //   .get(serverUrl + 'customer/fetchRestaurantResults', {
+    //     // Do
+    //     params: {
+    //       filter: localStorage.getItem('SearchFilter'),
+    //       searchString: localStorage.getItem('SearchedString'),
+    //       pageNo: 0,
+    //     },
+    //     withCredentials: true,
+    //   })
+    this.props.client
+      .query({
+        query: searchRestaurantQuery,
+        variables: {
           filter: localStorage.getItem('SearchFilter'),
           searchString: localStorage.getItem('SearchedString'),
-          pageNo: 0,
         },
-        withCredentials: true,
+        fetchPolicy: 'network-only',
       })
       .then((response) => {
         console.log(response.data);
-        let mapCoordinates = response.data[0].map((restaurant) => {
-          return {
-            title: restaurant.name,
-            coordinates: { lat: restaurant.Latitude, lng: restaurant.Longitude },
-          };
-        });
-        let allRestaurants = response.data[0].map((restaurant) => {
-          let avgRating = 0;
-          if (restaurant.TotalReviewCount)
-            avgRating = Math.round(restaurant.TotalRatings / Number(restaurant.TotalReviewCount));
-          return {
-            ID: restaurant.RestaurantID,
-            Name: restaurant.name,
-            DineIn: restaurant.Dine_In,
-            YelpDelivery: restaurant.Yelp_Delivery,
-            CurbsidePickup: restaurant.Curbside_Pickup,
-            AvgRating: avgRating,
-            ReviewCounts: restaurant.TotalReviewCount,
-            ImageUrl: restaurant.ImageURL,
-            OpeningTime: restaurant.Opening_Time,
-            ClosingTime: restaurant.Closing_Time,
-          };
-        });
+        let mapCoordinates = response.data.SearchRestaurant.RestaurantSearchList.map(
+          (restaurant) => {
+            return {
+              title: restaurant.name,
+              coordinates: { lat: restaurant.Latitude, lng: restaurant.Longitude },
+            };
+          }
+        );
+        let allRestaurants = response.data.SearchRestaurant.RestaurantSearchList.map(
+          (restaurant) => {
+            let avgRating = 0;
+            if (restaurant.TotalReviewCount && Number(restaurant.TotalReviewCount) !== 0)
+              avgRating = Math.round(restaurant.TotalRatings / Number(restaurant.TotalReviewCount));
+            else avgRating = 0;
+            return {
+              ID: restaurant.RestaurantID,
+              Name: restaurant.name,
+              DineIn: restaurant.Dine_In,
+              YelpDelivery: restaurant.Yelp_Delivery,
+              CurbsidePickup: restaurant.Curbside_Pickup,
+              AvgRating: avgRating,
+              ReviewCounts: restaurant.TotalReviewCount,
+              // ImageUrl: restaurant.ImageURL,
+              OpeningTime: restaurant.Opening_Time,
+              ClosingTime: restaurant.Closing_Time,
+            };
+          }
+        );
 
         this.setState({
           BackupRestaurantsList: allRestaurants,
@@ -66,8 +80,8 @@ class RestaurantList extends Component {
         const payload = {
           restaurantSearchResults: allRestaurants,
           mapCoordinates: mapCoordinates,
-          Count: response.data[1],
-          noOfPages: response.data[2],
+          // Count: response.data[1],
+          // noOfPages: response.data[2],
         };
         this.props.updateRestaurantArray(payload);
       });
@@ -83,13 +97,13 @@ class RestaurantList extends Component {
       this.props.updateRestaurantArray(payload);
     } else if (filterMode === 'CurbsidePickup') {
       filterResult = this.state.BackupRestaurantsList.filter(
-        (restaurant) => restaurant.CurbsidePickup === 1
+        (restaurant) => restaurant.CurbsidePickup === 1 || restaurant.CurbsidePickup === true
       );
       const payload = { restaurantSearchResults: filterResult };
       this.props.updateRestaurantArray(payload);
     } else {
       filterResult = this.state.BackupRestaurantsList.filter(
-        (restaurant) => restaurant.YelpDelivery === 1
+        (restaurant) => restaurant.YelpDelivery === 1 || restaurant.YelpDelivery === true
       );
       const payload = { restaurantSearchResults: filterResult };
       this.props.updateRestaurantArray(payload);
@@ -105,61 +119,61 @@ class RestaurantList extends Component {
     window.location.reload(false);
   };
 
-  handlePageClick = (e) => {
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios
-      .get(serverUrl + 'customer/fetchRestaurantResults', {
-        // Do
-        params: {
-          filter: localStorage.getItem('SearchFilter'),
-          searchString: localStorage.getItem('SearchedString'),
-          pageNo: e.selected,
-        },
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log(response.data);
-        let mapCoordinates = response.data[0].map((restaurant) => {
-          return {
-            title: restaurant.name,
-            coordinates: { lat: restaurant.Latitude, lng: restaurant.Longitude },
-          };
-        });
-        let allRestaurants = response.data[0].map((restaurant) => {
-          let avgRating = 0;
-          if (restaurant.TotalReviewCount)
-            avgRating = Math.round(restaurant.TotalRatings / Number(restaurant.TotalReviewCount));
-          return {
-            ID: restaurant.RestaurantID,
-            Name: restaurant.name,
-            DineIn: restaurant.Dine_In,
-            YelpDelivery: restaurant.Yelp_Delivery,
-            CurbsidePickup: restaurant.Curbside_Pickup,
-            AvgRating: avgRating,
-            ReviewCounts: restaurant.ReviewCounts,
-            ImageUrl: restaurant.ImageURL,
-            OpeningTime: restaurant.Opening_Time,
-            ClosingTime: restaurant.Closing_Time,
-          };
-        });
+  // handlePageClick = (e) => {
+  //   axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+  //   axios
+  //     .get(serverUrl + 'customer/fetchRestaurantResults', {
+  //       // Do
+  //       params: {
+  //         filter: localStorage.getItem('SearchFilter'),
+  //         searchString: localStorage.getItem('SearchedString'),
+  //         pageNo: e.selected,
+  //       },
+  //       withCredentials: true,
+  //     })
+  //     .then((response) => {
+  //       console.log(response.data);
+  //       let mapCoordinates = response.data[0].map((restaurant) => {
+  //         return {
+  //           title: restaurant.name,
+  //           coordinates: { lat: restaurant.Latitude, lng: restaurant.Longitude },
+  //         };
+  //       });
+  //       let allRestaurants = response.data[0].map((restaurant) => {
+  //         let avgRating = 0;
+  //         if (restaurant.TotalReviewCount)
+  //           avgRating = Math.round(restaurant.TotalRatings / Number(restaurant.TotalReviewCount));
+  //         return {
+  //           ID: restaurant.RestaurantID,
+  //           Name: restaurant.name,
+  //           DineIn: restaurant.Dine_In,
+  //           YelpDelivery: restaurant.Yelp_Delivery,
+  //           CurbsidePickup: restaurant.Curbside_Pickup,
+  //           AvgRating: avgRating,
+  //           ReviewCounts: restaurant.ReviewCounts,
+  //           ImageUrl: restaurant.ImageURL,
+  //           OpeningTime: restaurant.Opening_Time,
+  //           ClosingTime: restaurant.Closing_Time,
+  //         };
+  //       });
 
-        this.setState({
-          BackupRestaurantsList: allRestaurants,
-          mapCoordinates: mapCoordinates,
-        });
-        const payload = {
-          restaurantSearchResults: allRestaurants,
-          mapCoordinates: mapCoordinates,
-          Count: response.data[1],
-          noOfPages: response.data[2],
-        };
-        this.props.updateRestaurantArray(payload);
-      });
+  //       this.setState({
+  //         BackupRestaurantsList: allRestaurants,
+  //         mapCoordinates: mapCoordinates,
+  //       });
+  //       const payload = {
+  //         restaurantSearchResults: allRestaurants,
+  //         mapCoordinates: mapCoordinates,
+  //         Count: response.data[1],
+  //         noOfPages: response.data[2],
+  //       };
+  //       this.props.updateRestaurantArray(payload);
+  //     });
 
-    this.setState({
-      authFlag: false,
-    });
-  };
+  //   this.setState({
+  //     authFlag: false,
+  //   });
+  // };
   filterDeliverMode = (filterMode) => {
     let filterResult = [];
     if (filterMode === 'Both') {
@@ -275,7 +289,7 @@ class RestaurantList extends Component {
                         />
                       ))}
                     </ul>
-                    <ReactPaginate
+                    {/* <ReactPaginate
                       previousLabel={'prev'}
                       nextLabel={'next'}
                       breakLabel={'...'}
@@ -287,7 +301,7 @@ class RestaurantList extends Component {
                       containerClassName={'pagination'}
                       subContainerClassName={'pages pagination'}
                       activeClassName={'active'}
-                    />
+                    /> */}
                   </div>
                 </div>
               </div>
@@ -338,4 +352,9 @@ const mapDispatchToProps = (dispatch) => {
     },
   };
 };
-export default connect(mapStateToProps, mapDispatchToProps)(RestaurantList);
+
+export default compose(
+  withApollo,
+  graphql(searchRestaurantQuery, { name: 'searchRestaurantQuery' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(RestaurantList);
