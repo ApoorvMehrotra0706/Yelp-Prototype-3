@@ -69,18 +69,21 @@ const custLogin = async (req) => {
 const fetchCustomerProfile = async (req) => {
   let res = null;
   const CustomerID = req.id;
-  await Customer.findOne({ CustomerID }, (error, result) => {
-    // eslint-disable-next-line no-empty
-    if (error) {
-    } else {
-      res = result;
-    }
-  });
+  res = await Customer.findOne({ CustomerID });
   return res;
 };
 
 const updateCustProfile = async (req) => {
   const res = {};
+  await Customer.updateOne({ CustomerID: req.CustomerID }, { ...req });
+  res.Result = 'Customer Profile Updated';
+  return res;
+};
+
+const updateCustContact = async (req) => {
+  const res = {};
+  // eslint-disable-next-line no-underscore-dangle
+  await Login.updateOne({ _id: req.CustomerID }, { ...req });
   await Customer.updateOne({ CustomerID: req.CustomerID }, { ...req });
   res.Result = 'Customer Profile Updated';
   return res;
@@ -302,4 +305,5 @@ module.exports = {
   writeAReview,
   generateOrder,
   custOrderSearchResults,
+  updateCustContact,
 };

@@ -22,13 +22,13 @@ class AboutMe extends Component {
       .then((response) => {
         console.log(response.data.CustomerProfile);
 
-        let DOB = moment.utc(response.data.CustomerProfile.DOB);
-        DOB = DOB.format('YYYY-MM-DD');
+        // let DOB = moment.utc(response.data.CustomerProfile.DOB);
+        // DOB = DOB.format('YYYY-MM-DD');
         localStorage.setItem('Name', response.data.CustomerProfile.name);
         let payload = {
           Name: response.data.CustomerProfile.name,
           NickName: response.data.CustomerProfile.NickName,
-          DOB: DOB,
+          DOB: response.data.CustomerProfile.DOB,
           City: response.data.CustomerProfile.City,
           State: response.data.CustomerProfile.state,
           Address: response.data.CustomerProfile.City.concat(', ').concat(

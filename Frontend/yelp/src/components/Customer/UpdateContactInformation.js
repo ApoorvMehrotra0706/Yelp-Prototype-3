@@ -8,6 +8,9 @@ import serverUrl from '../../config';
 import jwt_decode from 'jwt-decode';
 import { connect } from 'react-redux';
 import SnackBar from '../../reducer/snackbarReducer';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { updateCustContact } from '../../mutation/mutation';
 
 class UpdateContactInformation extends Component {
   constructor(props) {
@@ -25,9 +28,7 @@ class UpdateContactInformation extends Component {
       },
     };
   }
-  componentWillMount() {
-    
-  }
+  componentWillMount() {}
 
   onEmailChangeHandler = (e) => {
     let payload = {
@@ -73,7 +74,6 @@ class UpdateContactInformation extends Component {
       errors,
     });
   };
-  
 
   updateContactInformation = (e) => {
     e.preventDefault();
@@ -81,52 +81,54 @@ class UpdateContactInformation extends Component {
       Password: this.state.Profile.Password,
       emailID: this.props.customerContactInfo.EmailID,
       newEmailID: this.props.customerContactInfo.NewEmailID,
-      user_id: localStorage.getItem('user_id'),
-      contact: this.props.customerContactInfo.NewContact, 
-      token: localStorage.getItem('token'),
+      contact: this.props.customerContactInfo.NewContact,
     };
-    axios.defaults.withCredentials = true;
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    //make a post request with the user data
-    axios.put(serverUrl + 'customer/updateContactInfo', data).then(
-      (response) => {
-        console.log('Status Code : ', response.status);
-        if (response.status === 200) {
-          localStorage.clear();
-          localStorage.setItem('token',response.data);
-          console.log(response.data);
-          let payload = {
-            EmailID: this.props.customerContactInfo.NewEmailID,
-            // NewEmailID: '',
-            Contact: this.props.customerContactInfo.NewContact,
-            // NewContact: '',
-          };
-          this.props.updateCustomerContactInfo(payload);
-          if (localStorage.getItem('token')) {
-            const decoded = jwt_decode(localStorage.getItem('token').split(' ')[1]);
-            localStorage.setItem('user_id', decoded._id);
-            localStorage.setItem('username', decoded.username);
-            localStorage.setItem('role', decoded.role);
+    // axios.defaults.withCredentials = true;
+    // axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+    // //make a post request with the user data
+    // axios.put(serverUrl + 'customer/updateContactInfo', data)
+    this.props.client
+      .mutate({
+        mutation: updateCustContact,
+        variables: {
+          emailID: this.props.customerContactInfo.NewEmailID,
+          contact: this.props.customerContactInfo.NewContact,
+          CustomerID: localStorage.getItem('CustomerID'),
+        },
+      })
+      .then(
+        (response) => {
+          console.log('Status Code : ', response.data.updateCustContact.Result);
+          if (response.data.updateCustContact.Result === 'Customer Profile Updated') {
+            let payload = {
+              EmailID: this.props.customerContactInfo.NewEmailID,
+              // NewEmailID: '',
+              Contact: this.props.customerContactInfo.NewContact,
+              // NewContact: '',
+            };
+            this.props.updateCustomerContactInfo(payload);
+            if (localStorage.getItem('role')) {
+              localStorage.setItem('username', this.props.customerContactInfo.NewEmailID);
+            }
+            //updateRedirect = <Redirect to="/customerLogin" />;
+            alert('Updated Successfully');
           }
-          //updateRedirect = <Redirect to="/customerLogin" />;
-          alert('Updated Successfully');
+        },
+        (error) => {
+          console.log(error);
+          if (error.response.status === 401) {
+            this.setState({
+              errors: { ...this.state.errors, ...{ submitError: error.response.data } },
+            });
+          }
         }
-      },
-      (error) => {
-        console.log(error);
-        if (error.response.status === 401) {
-          this.setState({
-            errors: { ...this.state.errors, ...{ submitError: error.response.data } },
-          });
-        }
-      }
-    );
+      );
   };
 
   render() {
     let redirectVar = null;
-    if (!localStorage.getItem('token')) {
-      console.log('token not found');
+    if (!localStorage.getItem('role')) {
+      console.log('role not found');
       redirectVar = <Redirect to="/customerLogin" />;
     } else {
       if (localStorage.getItem('role') === 'Customer') {
@@ -272,4 +274,8 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(UpdateContactInformation);
+export default compose(
+  withApollo,
+  graphql(updateCustContact, { name: 'updateCustContact' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(UpdateContactInformation);

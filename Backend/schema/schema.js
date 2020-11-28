@@ -23,6 +23,7 @@ const {
   fetchCustomerProfile,
   custSignup,
   updateCustProfile,
+  updateCustContact,
   restSearchResults,
   writeAReview,
   generateOrder,
@@ -1251,6 +1252,26 @@ const Mutation = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return updateCustProfile(args);
+      },
+    },
+    updateCustContact: {
+      type: CustomerType,
+      args: {
+        CustomerID: {
+          type: GraphQLString,
+        },
+        contact: {
+          type: GraphQLString,
+        },
+        Contact: {
+          type: GraphQLString,
+        },
+        emailID: {
+          type: GraphQLString,
+        },
+      },
+      resolve(parent, args) {
+        return updateCustContact(args);
       },
     },
     writeReview: {

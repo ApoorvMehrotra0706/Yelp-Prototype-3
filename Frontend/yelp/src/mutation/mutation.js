@@ -115,4 +115,17 @@ const updateCustProfile = gql`
   }
 `;
 
-export { restSignUp, custSignUp, custLogin, updateCustProfile };
+const updateCustContact = gql`
+  mutation($emailID: String, $contact: String, $CustomerID: String) {
+    updateCustContact(
+      emailID: $emailID
+      contact: $contact
+      CustomerID: $CustomerID
+      Contact: $contact
+    ) {
+      Result
+    }
+  }
+`;
+
+export { restSignUp, custSignUp, custLogin, updateCustProfile, updateCustContact };
