@@ -25,11 +25,15 @@ class AboutMe extends Component {
 
         // let DOB = moment.utc(response.data.CustomerProfile.DOB);
         // DOB = DOB.format('YYYY-MM-DD');
+        let DOB = null;
+        if (response.data.CustomerProfile.DOB) {
+          DOB = new Date(parseInt(response.data.CustomerProfile.DOB));
+        }
         localStorage.setItem('Name', response.data.CustomerProfile.name);
         let payload = {
           Name: response.data.CustomerProfile.name,
           NickName: response.data.CustomerProfile.NickName,
-          DOB: response.data.CustomerProfile.DOB,
+          DOB: DOB,
           City: response.data.CustomerProfile.City,
           State: response.data.CustomerProfile.state,
           Address: response.data.CustomerProfile.City.concat(', ').concat(
@@ -43,7 +47,7 @@ class AboutMe extends Component {
           Contact: response.data.CustomerProfile.contact,
           ILove: response.data.CustomerProfile.Things_Customer_Love,
           Find_Me_In: response.data.CustomerProfile.Find_Me_In,
-          YelpingSince: response.data.CustomerProfile.YelpingSince,
+          YelpingSince: new Date(parseInt(response.data.CustomerProfile.YelpingSince)),
           Website: response.data.CustomerProfile.Website,
           ImageURL: response.data.CustomerProfile.ImageURL,
           Events: response.data.CustomerProfile.Events,
@@ -103,13 +107,13 @@ class AboutMe extends Component {
             <div className="column column-beta ">
               <div className="user-details-overview">
                 <div class="user-details-overview_sidebar">
-                  {this.props.customerData.NickName != null &&
+                  {this.props.customerData.NickName !== null &&
                   this.props.customerData.NickName.length > 0 ? (
                     <h3>About {this.props.customerData.NickName}</h3>
                   ) : (
                     <h3>About {this.props.customerData.Name}</h3>
                   )}
-                  {this.props.customerData.Headline != null &&
+                  {this.props.customerData.Headline !== null &&
                   this.props.customerData.Headline.length > 0 ? (
                     <h3 style={{ color: 'black' }}> {this.props.customerData.Headline}</h3>
                   ) : (
@@ -141,7 +145,7 @@ class AboutMe extends Component {
                     <ul class="ylist">
                       <li>
                         <h4>Location</h4>
-                        {this.props.customerData.Address != null &&
+                        {this.props.customerData.Address !== null &&
                         this.props.customerData.Address.length > 0 ? (
                           <p>{this.props.customerData.Address}</p>
                         ) : (
@@ -150,24 +154,36 @@ class AboutMe extends Component {
                       </li>
                       <li>{this.props.customerData.streetAddress}</li>
 
-                      <li>
+                      {/* <li>
                         <h4>Date Of Birth</h4>
-                        {(this.props.customerData.DOB != null &&
-                          this.props.customerData.DOB.length) > 0 ? (
-                          <p>{this.props.customerData.DOB}</p>
+                        {this.props.customerData.DOB !== null &&
+                        this.props.customerData.DOB !== 'Invalid Date' ? (
+                          <p>
+                            {new Intl.DateTimeFormat('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: '2-digit',
+                            }).format(this.props.customerData.DOB)}
+                          </p>
                         ) : (
                           <p>Tell us to avail Birthday offers!</p>
                         )}
-                      </li>
+                      </li> */}
 
                       <li>
                         <h4>Yelping Since</h4>
-                        <p>{this.props.customerData.YelpingSince}</p>
+                        <p>
+                          {new Intl.DateTimeFormat('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: '2-digit',
+                          }).format(this.props.customerData.YelpingSince)}
+                        </p>
                       </li>
 
                       <li>
                         <h4>Things I Love</h4>
-                        {this.props.customerData.ILove != null &&
+                        {this.props.customerData.ILove !== null &&
                         this.props.customerData.ILove.length > 0 ? (
                           <p>{this.props.customerData.ILove}</p>
                         ) : (
@@ -177,7 +193,7 @@ class AboutMe extends Component {
 
                       <li>
                         <h4>Find Me In</h4>
-                        {this.props.customerData.Find_Me_In != null &&
+                        {this.props.customerData.Find_Me_In !== null &&
                         this.props.customerData.Find_Me_In.length > 0 ? (
                           <p>{this.props.customerData.Find_Me_In}</p>
                         ) : (
@@ -186,7 +202,7 @@ class AboutMe extends Component {
                       </li>
                       <li>
                         <h4>Follow My Website/Blog</h4>
-                        {this.props.customerData.Website != null &&
+                        {this.props.customerData.Website !== null &&
                         this.props.customerData.Website.length > 0 ? (
                           <p>{this.props.customerData.Website}</p>
                         ) : (

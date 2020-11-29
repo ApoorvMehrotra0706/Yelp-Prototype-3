@@ -1,8 +1,6 @@
 import Review from './Review';
 import CustomerProfile from '../Orders/CustomerProfile';
 import React, { Component } from 'react';
-import axios from 'axios';
-import serverUrl from '../../config';
 import './Reviews.css';
 import { connect } from 'react-redux';
 import { graphql, Query, withApollo } from 'react-apollo';
@@ -33,7 +31,7 @@ class ReviewList extends Component {
           return {
             ID: Review._id,
             Rating: Review.Ratings,
-            Date: new Date(Review.Date),
+            Date: new Date(parseInt(Review.Date)),
             Description: Review.Review,
             CustomerId: Review.CustomerID,
             CustomerName: Review.CustomerName,

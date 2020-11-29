@@ -155,7 +155,7 @@ class UpdateProfile extends Component {
           name: this.props.customerData.Name,
           CustomerID: localStorage.getItem('CustomerID'),
           gender: this.props.customerData.Gender,
-          DOB: this.props.customerData.DOB,
+          DOB: new Date(parseInt(this.props.customerData.DOB)),
           NickName: this.props.customerData.NickName,
           streetAddress: this.props.customerData.streetAddress,
           City: this.props.customerData.City,
@@ -419,7 +419,7 @@ class UpdateProfile extends Component {
                       name="DOB"
                       type="date"
                       //step="1"
-                      value={this.state.time}
+                      // value={this.state.time}
                       placeholder="Date"
                       onChange={this.onChangeDate}
                       value={this.props.customerData.DOB}

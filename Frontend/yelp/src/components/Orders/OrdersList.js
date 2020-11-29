@@ -53,7 +53,7 @@ class ordersList extends Component {
             ID: order._id,
             CustomerId: order.CustomerID,
             CustomerName: order.CustomerName,
-            OrderedTime: order.Date,
+            OrderedTime: new Date(parseInt(order.Date)),
             OrderType: order.DeliveryMode,
             DeliverStatusID: order.StatusID, // Number conversion to text
             DeliverStatusValue: order.State,
@@ -74,9 +74,6 @@ class ordersList extends Component {
         });
         let payload = {
           orderDetails: allOrders,
-          // PageCount: response.data[1],
-          // TotalCount: response.data[2],
-          // pageNo,
         };
         this.props.updateOrderInfo(payload);
       })
@@ -236,7 +233,7 @@ class ordersList extends Component {
               />
             ))}
           </ul>
-          <ReactPaginate
+          {/* <ReactPaginate
             previousLabel={'prev'}
             nextLabel={'next'}
             breakLabel={'...'}
@@ -249,7 +246,7 @@ class ordersList extends Component {
             subContainerClassName={'pages pagination'}
             forcePage={this.props.orders.pageNo}
             activeClassName={'active'}
-          />
+          /> */}
         </div>
 
         {this.props.customerDetails.popSeen ? (

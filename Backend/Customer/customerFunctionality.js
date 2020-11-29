@@ -22,6 +22,7 @@ const custSignup = async (req) => {
       ...req,
       Password,
       Role: 'Customer',
+      DOB: new Date(),
     });
     const customerLogin = await login.save();
 

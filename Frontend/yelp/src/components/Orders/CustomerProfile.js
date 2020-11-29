@@ -56,7 +56,7 @@ class CustomerProfile extends Component {
           Contact: response.data.CustomerProfile.contact,
           ILove: response.data.CustomerProfile.Things_Customer_Love,
           Find_Me_In: response.data.CustomerProfile.Find_Me_In,
-          YelpingSince: response.data.CustomerProfile.YelpingSince,
+          YelpingSince: new Date(parseInt(response.data.CustomerProfile.YelpingSince)),
           Website: response.data.CustomerProfile.Website,
           ImageURL: response.data.CustomerProfile.ImageURL,
         };
@@ -212,7 +212,16 @@ class CustomerProfile extends Component {
                             )}
                           </li>
                           <li>{this.props.customerData.streetAddress}</li>
-
+                          <li>
+                            <h4>Yelping Since</h4>
+                            <p>
+                              {new Intl.DateTimeFormat('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: '2-digit',
+                              }).format(this.props.customerData.YelpingSince)}
+                            </p>
+                          </li>
                           <li>
                             <h4>Find Me In</h4>
                             {(this.props.customerData.Find_Me_In != null &&

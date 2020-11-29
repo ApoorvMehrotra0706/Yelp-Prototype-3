@@ -66,7 +66,7 @@ class OrdersList extends Component {
               ID: order._id,
               Bill: order.Bill,
               DeliverStatusValue: order.Status,
-              OrderedTime: order.Date,
+              OrderedTime: new Date(parseInt(order.Date)),
               OrderType: order.DeliveryMode,
               orders: order.OrderCartType,
             };

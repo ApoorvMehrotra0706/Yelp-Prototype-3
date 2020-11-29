@@ -70,8 +70,8 @@ class Navbar extends Component {
             let payload = {
               Name: response.data.CustomerProfile.name,
               NickName: response.data.CustomerProfile.NickName,
-              DOB: response.data.CustomerProfile.DOB,
-              City: response.data.CustomerProfile.city,
+              DOB: new Date(parseInt(response.data.CustomerProfile.DOB)),
+              City: response.data.CustomerProfile.City,
               State: response.data.CustomerProfile.state,
               Address: response.data.CustomerProfile.City.concat(', ').concat(
                 response.data.CustomerProfile.state
@@ -84,7 +84,7 @@ class Navbar extends Component {
               Contact: response.data.CustomerProfile.contact,
               ILove: response.data.CustomerProfile.Things_Customer_Love,
               Find_Me_In: response.data.CustomerProfile.Find_Me_In,
-              YelpingSince: response.data.CustomerProfile.YelpingSince,
+              YelpingSince: new Date(parseInt(response.data.CustomerProfile.YelpingSince)),
               Website: response.data.CustomerProfile.Website,
               ImageURL: response.data.CustomerProfile.ImageURL,
             };

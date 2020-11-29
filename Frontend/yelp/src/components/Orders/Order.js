@@ -112,7 +112,11 @@ class Order extends Component {
                     {/* 8/22/2020*/}
                   </span>
                   <span class="lemon--span__373c0__3997G text__373c0__2Kxyz text-color--mid__373c0__jCeOG text-align--left__373c0__2XGa-">
-                    {this.props.order.OrderedTime}
+                    {new Intl.DateTimeFormat('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: '2-digit',
+                    }).format(this.props.order.OrderedTime)}
                   </span>
                 </div>
               </div>
