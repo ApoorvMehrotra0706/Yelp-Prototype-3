@@ -193,10 +193,49 @@ const restSearchOrderFilterQuery = gql`
     }
   }
 `;
+
+const custSearchOrderFilterQuery = gql`
+  query CustSearchOrderFilter(
+    $CustomerID: String
+    $filter1: String
+    $filter2: String
+    $sortOrder: Int
+  ) {
+    CustSearchOrderFilter(
+      CustomerID: $CustomerID
+      filter1: $filter1
+      filter2: $filter2
+      sortOrder: $sortOrder
+    ) {
+      OrderSearchList {
+        _id
+        RestaurantID
+        RestaurantName
+        Date
+        Bill
+        DeliveryMode
+        StatusID
+        Status
+        State
+        Address
+        OrderCartType {
+          OrderID
+          Dishname
+          Price
+          Quantity
+          TotalPrice
+          RestaurantID
+        }
+      }
+    }
+  }
+`;
+
 export {
   staticDataQuery,
   customerProfileQuery,
   restaurantProfileQuery,
   searchRestaurantQuery,
   restSearchOrderFilterQuery,
+  custSearchOrderFilterQuery,
 };

@@ -6,18 +6,15 @@ import axios from 'axios';
 import serverUrl from '../../config';
 import OrderDetails from '../Orders/OrderDetails';
 import { connect } from 'react-redux';
-import ReactPaginate from 'react-paginate';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { custSearchOrderFilterQuery } from '../../query/query';
 
 class OrdersList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // filter1: '',
-      // filter2: '',
-      // OrdersOrignalCopy: [],
       popSeen: false,
-      // ORDERS: [],
-      // orderDetails: [],
     };
   }
 
@@ -29,23 +26,40 @@ class OrdersList extends Component {
     };
     await this.props.updateOrderHistory(payload);
     this.fetchOrders();
-  }
+  };
 
   fetchOrders = (pageNo = 0) => {
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios
-      .get(
-        serverUrl + 'customer/fetchAllOrders',
+    // axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+    // axios
+    //   .get(
+    //     serverUrl + 'customer/fetchAllOrders',
 
-        { params: { CustomerID: localStorage.getItem('user_id'), 
-        filter1: this.props.orderHistory.filter1,
-        filter2: this.props.orderHistory.filter2,
-        sortOrder: this.props.orderHistory.sortOrder, pageNo, }, withCredentials: true }
-      )
+    //     {
+    //       params: {
+    //         CustomerID: localStorage.getItem('user_id'),
+    //         filter1: this.props.orderHistory.filter1,
+    //         filter2: this.props.orderHistory.filter2,
+    //         sortOrder: this.props.orderHistory.sortOrder,
+    //         pageNo,
+    //       },
+    //       withCredentials: true,
+    //     }
+    //   )
+    this.props.client
+      .query({
+        query: custSearchOrderFilterQuery,
+        variables: {
+          CustomerID: localStorage.getItem('CustomerID'),
+          filter1: this.props.orderHistory.filter1,
+          filter2: this.props.orderHistory.filter2,
+          sortOrder: this.props.orderHistory.sortOrder,
+        },
+        fetchPolicy: 'network-only',
+      })
       .then(
         (response) => {
-          console.log(response.data);
-          let allOrders = response.data[0].map((order) => {
+          console.log(response.data.CustSearchOrderFilter.OrderSearchList);
+          let allOrders = response.data.CustSearchOrderFilter.OrderSearchList.map((order) => {
             return {
               RestaurantID: order.RestaurantID,
               RestaurantName: order.RestaurantName,
@@ -54,20 +68,21 @@ class OrdersList extends Component {
               DeliverStatusValue: order.Status,
               OrderedTime: order.Date,
               OrderType: order.DeliveryMode,
-              orders: order.Orders,
+              orders: order.OrderCartType,
             };
           });
 
           let payload = {
-            orderDetails: allOrders, 
-            PageCount: response.data[1],
-            TotalCount: response.data[2],
-            PageNo: pageNo,
-          }
+            orderDetails: allOrders,
+            // PageCount: response.data[1],
+            // TotalCount: response.data[2],
+            // PageNo: pageNo,
+          };
           this.props.updateOrderHistory(payload);
         },
-        (error) => {});
-  }
+        (error) => {}
+      );
+  };
 
   fetchOrdersFilter1 = async (event, filter1) => {
     let payload = {
@@ -80,22 +95,22 @@ class OrdersList extends Component {
   fetchOrdersFilter2 = async (event, filter2) => {
     let payload = {
       filter2,
-    }
+    };
     await this.props.updateOrderHistory(payload);
-    this.fetchOrders();   
+    this.fetchOrders();
   };
 
   setSortOrder = async (event, sortOrder) => {
-      let payload = {
-        sortOrder,
-      };
-      await this.props.updateOrderHistory(payload);
-      this.fetchOrders();
+    let payload = {
+      sortOrder,
+    };
+    await this.props.updateOrderHistory(payload);
+    this.fetchOrders();
   };
 
-  handlePageClick = (e) => {
-    this.fetchOrders(e.selected);
-  }
+  // handlePageClick = (e) => {
+  //   this.fetchOrders(e.selected);
+  // }
   openOrderDetails = (orderID, restaurantID) => {
     if (this.state.popSeen) {
       this.setState({
@@ -104,31 +119,30 @@ class OrdersList extends Component {
     } else {
       let index = this.props.orderHistory.orderDetails.findIndex(
         (x) => x.ID === orderID && x.RestaurantID === restaurantID
-      ); 
-          let allItems = this.props.orderHistory.orderDetails[index].orders.map((order)=> {
-            return {
-              first: order.Dishname,
-              count: order.Quantity,
-              price: order.Price,
-              totalPrice: order.TotalPrice,
-            }
+      );
+      let allItems = this.props.orderHistory.orderDetails[index].orders.map((order) => {
+        return {
+          first: order.Dishname,
+          count: order.Quantity,
+          price: order.Price,
+          totalPrice: order.TotalPrice,
+        };
+      });
 
-          });
-          
-          this.setState({
-            popSeen: !this.state.popSeen,
-          });
-          let payload = {
-            custOrder: allItems,
-          };
-          this.props.updateOrderHistory(payload);
+      this.setState({
+        popSeen: !this.state.popSeen,
+      });
+      let payload = {
+        custOrder: allItems,
+      };
+      this.props.updateOrderHistory(payload);
     }
   };
 
   render() {
     let redirectVar = null;
-    if (!localStorage.getItem('token')) {
-      console.log('Token not found');
+    if (!localStorage.getItem('role')) {
+      console.log('Role not found');
       redirectVar = <Redirect to="/customerLogin" />;
     } else {
       if (localStorage.getItem('role') === 'Customer') {
@@ -198,27 +212,26 @@ class OrdersList extends Component {
 
                       <ul class="nav navbar-nav navbar-right">
                         <li>
-                          <Link
-                            to="#"
-                            onClick={(event) => this.setSortOrder(event, -1)}
-                          >
+                          <Link to="#" onClick={(event) => this.setSortOrder(event, -1)}>
                             <span class="glyphicon glyphicon-arrow-down"></span>
                             Descending
                           </Link>
                         </li>
                         <li>
-                        <Link
-                          to="#"
-                          onClick={(event) => this.setSortOrder(event, 1)}
-                        >
-                          <span class="glyphicon glyphicon-arrow-up"></span>
-                          Ascending
-                        </Link>
+                          <Link to="#" onClick={(event) => this.setSortOrder(event, 1)}>
+                            <span class="glyphicon glyphicon-arrow-up"></span>
+                            Ascending
+                          </Link>
                         </li>
-                      </ul> 
+                      </ul>
                       <ul class="nav navbar-nav">
-                        {(this.props.orderHistory.filter1 === 'Pickup' || this.props.orderHistory.filter1 === 'Delivery') && (
-                          <li className={this.props.orderHistory.filter2 === 'Order Received' && 'active'}>
+                        {(this.props.orderHistory.filter1 === 'Pickup' ||
+                          this.props.orderHistory.filter1 === 'Delivery') && (
+                          <li
+                            className={
+                              this.props.orderHistory.filter2 === 'Order Received' && 'active'
+                            }
+                          >
                             <Link
                               to="#"
                               onClick={(event) => this.fetchOrdersFilter2(event, 'Order Received')}
@@ -227,28 +240,35 @@ class OrdersList extends Component {
                             </Link>
                           </li>
                         )}
-                        {(this.props.orderHistory.filter1 === 'Pickup' || this.props.orderHistory.filter1 === 'Delivery') && (
-                          <li className={this.props.orderHistory.filter2 === 'preparing' && 'active'}>
+                        {(this.props.orderHistory.filter1 === 'Pickup' ||
+                          this.props.orderHistory.filter1 === 'Delivery') && (
+                          <li
+                            className={this.props.orderHistory.filter2 === 'Preparing' && 'active'}
+                          >
                             <Link
                               to="#"
-                              onClick={(event) => this.fetchOrdersFilter2(event, 'preparing')}
+                              onClick={(event) => this.fetchOrdersFilter2(event, 'Preparing')}
                             >
                               Preparing
                             </Link>
                           </li>
                         )}
                         {this.props.orderHistory.filter1 === 'Delivery' && (
-                          <li className={this.props.orderHistory.filter2 === 'onTheWay' && 'active'}>
+                          <li
+                            className={this.props.orderHistory.filter2 === 'On the way' && 'active'}
+                          >
                             <Link
                               to="#"
-                              onClick={(event) => this.fetchOrdersFilter2(event, 'onTheWay')}
+                              onClick={(event) => this.fetchOrdersFilter2(event, 'On the way')}
                             >
                               On The Way
                             </Link>
                           </li>
                         )}
                         {this.props.orderHistory.filter1 === 'Delivery' && (
-                          <li className={this.props.orderHistory.filter2 === 'Delivered' && 'active'}>
+                          <li
+                            className={this.props.orderHistory.filter2 === 'Delivered' && 'active'}
+                          >
                             <Link
                               to="#"
                               onClick={(event) => this.fetchOrdersFilter2(event, 'Delivered')}
@@ -258,20 +278,26 @@ class OrdersList extends Component {
                           </li>
                         )}
                         {this.props.orderHistory.filter1 === 'Pickup' && (
-                          <li className={this.props.orderHistory.filter2 === 'pickupReady' && 'active'}>
+                          <li
+                            className={
+                              this.props.orderHistory.filter2 === 'Pick up Ready' && 'active'
+                            }
+                          >
                             <Link
                               to="#"
-                              onClick={(event) => this.fetchOrdersFilter2(event, 'pickupReady')}
+                              onClick={(event) => this.fetchOrdersFilter2(event, 'Pick up Ready')}
                             >
                               Pickup Ready
                             </Link>
                           </li>
                         )}
                         {this.props.orderHistory.filter1 === 'Pickup' && (
-                          <li className={this.props.orderHistory.filter2 === 'pickedUp' && 'active'}>
+                          <li
+                            className={this.props.orderHistory.filter2 === 'Picked up' && 'active'}
+                          >
                             <Link
                               to="#"
-                              onClick={(event) => this.fetchOrdersFilter2(event, 'pickedUp')}
+                              onClick={(event) => this.fetchOrdersFilter2(event, 'Picked up')}
                             >
                               Picked up
                             </Link>
@@ -289,15 +315,15 @@ class OrdersList extends Component {
                       toggle={this.openOrderDetails}
                     />
                   ) : null}
-                    <ul className="lemon--ul__373c0__1_cxs undefined list__373c0__2G8oH">
-                      {this.props.orderHistory.orderDetails.map((order) => (
-                        <OrderForCustomer
-                          order={order}
-                          openOrderDetails={() => this.openOrderDetails(order.ID, order.RestaurantID)}
-                        />
-                      ))}
-                    </ul>
-                    <ReactPaginate
+                  <ul className="lemon--ul__373c0__1_cxs undefined list__373c0__2G8oH">
+                    {this.props.orderHistory.orderDetails.map((order) => (
+                      <OrderForCustomer
+                        order={order}
+                        openOrderDetails={() => this.openOrderDetails(order.ID, order.RestaurantID)}
+                      />
+                    ))}
+                  </ul>
+                  {/* <ReactPaginate
                       previousLabel={'prev'}
                       nextLabel={'next'}
                       breakLabel={'...'}
@@ -310,9 +336,8 @@ class OrdersList extends Component {
                       subContainerClassName={'pages pagination'}
                       forcePage={this.props.orderHistory.PageNo}
                       activeClassName={'active'}
-                  />
-                  <div>
-                  </div>
+                  /> */}
+                  <div></div>
                 </div>
               </div>
             </div>
@@ -336,10 +361,13 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = (state) => {
   const { orderHistory } = state.orderHistoryReducer;
-  return { 
+  return {
     orderHistory: orderHistory,
-   };
+  };
 };
 
-
-export default connect(mapStateToProps, mapDispatchToProps)(OrdersList);
+export default compose(
+  withApollo,
+  graphql(custSearchOrderFilterQuery, { name: 'custSearchOrderFilterQuery' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(OrdersList);

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactPaginate from 'react-paginate';
 
 class Review extends Component {
   constructor(props) {

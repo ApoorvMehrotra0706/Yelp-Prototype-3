@@ -854,7 +854,7 @@ const RootQuery = new GraphQLObjectType({
         },
         sortOrder: {
           // Sorting Order
-          type: GraphQLString,
+          type: GraphQLInt,
         },
       },
       resolve(parent, args) {
