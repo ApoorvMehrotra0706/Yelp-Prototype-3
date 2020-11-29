@@ -23,12 +23,12 @@ class AboutMe extends Component {
       .then((response) => {
         console.log(response.data.CustomerProfile);
 
-        // let DOB = moment.utc(response.data.CustomerProfile.DOB);
-        // DOB = DOB.format('YYYY-MM-DD');
-        let DOB = null;
-        if (response.data.CustomerProfile.DOB) {
-          DOB = new Date(parseInt(response.data.CustomerProfile.DOB));
-        }
+        let DOB = moment.utc(parseInt(response.data.CustomerProfile.DOB));
+        DOB = DOB.format('YYYY-MM-DD');
+        // let DOB = null;
+        // if (response.data.CustomerProfile.DOB) {
+        //   DOB = new Date(parseInt(response.data.CustomerProfile.DOB));
+        // }
         localStorage.setItem('Name', response.data.CustomerProfile.name);
         let payload = {
           Name: response.data.CustomerProfile.name,
@@ -154,21 +154,14 @@ class AboutMe extends Component {
                       </li>
                       <li>{this.props.customerData.streetAddress}</li>
 
-                      {/* <li>
+                      <li>
                         <h4>Date Of Birth</h4>
-                        {this.props.customerData.DOB !== null &&
-                        this.props.customerData.DOB !== 'Invalid Date' ? (
-                          <p>
-                            {new Intl.DateTimeFormat('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: '2-digit',
-                            }).format(this.props.customerData.DOB)}
-                          </p>
+                        {this.props.customerData.DOB !== null ? (
+                          <p>{this.props.customerData.DOB}</p>
                         ) : (
                           <p>Tell us to avail Birthday offers!</p>
                         )}
-                      </li> */}
+                      </li>
 
                       <li>
                         <h4>Yelping Since</h4>

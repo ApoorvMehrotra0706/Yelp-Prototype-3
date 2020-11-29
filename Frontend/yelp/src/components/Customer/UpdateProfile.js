@@ -155,7 +155,7 @@ class UpdateProfile extends Component {
           name: this.props.customerData.Name,
           CustomerID: localStorage.getItem('CustomerID'),
           gender: this.props.customerData.Gender,
-          DOB: new Date(parseInt(this.props.customerData.DOB)),
+          DOB: this.props.customerData.DOB,
           NickName: this.props.customerData.NickName,
           streetAddress: this.props.customerData.streetAddress,
           City: this.props.customerData.City,
