@@ -5,7 +5,9 @@ import axios from 'axios';
 import serverUrl from '../../config';
 import './Reviews.css';
 import { connect } from 'react-redux';
-import ReactPaginate from 'react-paginate';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restaurantProfileQuery } from '../../query/query';
 
 class ReviewList extends Component {
   constructor(props) {
@@ -17,15 +19,17 @@ class ReviewList extends Component {
   }
   componentDidMount() {
     console.log('inside Reviews');
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios
-      .get(serverUrl + 'restaurant/fetchReview', {
-        params: { RestaurantID: localStorage.getItem('user_id'), pageNo: this.state.pageNo },
-        withCredentials: true,
+    this.props.client
+      .query({
+        query: restaurantProfileQuery,
+        variables: {
+          id: localStorage.getItem('RestaurantID'),
+        },
+        fetchPolicy: 'network-only',
       })
       .then((response) => {
-        console.log('Review  Fetched', response.data);
-        let allReviews = response.data[0].map((Review) => {
+        console.log('Review  Fetched', response.data.RestaurantProfile.Review);
+        let allReviews = response.data.RestaurantProfile.Review.map((Review) => {
           return {
             ID: Review._id,
             Rating: Review.Ratings,
@@ -33,7 +37,7 @@ class ReviewList extends Component {
             Description: Review.Review,
             CustomerId: Review.CustomerID,
             CustomerName: Review.CustomerName,
-            ImageUrl: Review.ImageUrl,
+            // ImageUrl: Review.ImageUrl,
           };
         });
 
@@ -42,42 +46,42 @@ class ReviewList extends Component {
         // });
         let payload = {
           reviews: allReviews,
-          PageCount: response.data[1],
+          // PageCount: response.data[1],
         };
         this.props.updateReviews(payload);
       });
   }
 
-  handlePageClick = (e) => {
-    this.setState({
-      pageNo: e.selected,
-    });
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios
-      .get(serverUrl + 'restaurant/fetchReview', {
-        params: { RestaurantID: localStorage.getItem('user_id'), pageNo: e.selected },
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log('Review  Fetched', response.data);
-        let allReviews = response.data[0].map((Review) => {
-          return {
-            ID: Review._id,
-            Rating: Review.Ratings,
-            Date: new Date(Review.Date),
-            Description: Review.Review,
-            CustomerId: Review.CustomerID,
-            CustomerName: Review.CustomerName,
-            ImageUrl: Review.ImageUrl,
-          };
-        });
-        let payload = {
-          reviews: allReviews,
-          PageCount: response.data[1],
-        };
-        this.props.updateReviews(payload);
-      });
-  };
+  // handlePageClick = (e) => {
+  //   this.setState({
+  //     pageNo: e.selected,
+  //   });
+  //   axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+  //   axios
+  //     .get(serverUrl + 'restaurant/fetchReview', {
+  //       params: { RestaurantID: localStorage.getItem('user_id'), pageNo: e.selected },
+  //       withCredentials: true,
+  //     })
+  //     .then((response) => {
+  //       console.log('Review  Fetched', response.data);
+  //       let allReviews = response.data[0].map((Review) => {
+  //         return {
+  //           ID: Review._id,
+  //           Rating: Review.Ratings,
+  //           Date: new Date(Review.Date),
+  //           Description: Review.Review,
+  //           CustomerId: Review.CustomerID,
+  //           CustomerName: Review.CustomerName,
+  //           ImageUrl: Review.ImageUrl,
+  //         };
+  //       });
+  //       let payload = {
+  //         reviews: allReviews,
+  //         PageCount: response.data[1],
+  //       };
+  //       this.props.updateReviews(payload);
+  //     });
+  // };
 
   openCustomerDetails = (event, reviewID = 0) => {
     // event.preventDefault();
@@ -107,7 +111,7 @@ class ReviewList extends Component {
             />
           ))}
         </ul>
-        <ReactPaginate
+        {/* <ReactPaginate
           previousLabel={'prev'}
           nextLabel={'next'}
           breakLabel={'...'}
@@ -119,7 +123,7 @@ class ReviewList extends Component {
           containerClassName={'pagination'}
           subContainerClassName={'pages pagination'}
           activeClassName={'active'}
-        />
+        /> */}
         <div>
           {this.props.customerDetails.popSeen ? (
             <CustomerProfile
@@ -160,4 +164,8 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ReviewList);
+export default compose(
+  withApollo,
+  graphql(restaurantProfileQuery, { name: 'restaurantProfileQuery' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(ReviewList);

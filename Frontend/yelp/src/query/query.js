@@ -103,6 +103,14 @@ const restaurantProfileQuery = gql`
         Main_Ingredients
         Description
       }
+      Review {
+        _id
+        Ratings
+        Date
+        Review
+        CustomerID
+        CustomerName
+      }
       Orders {
         _id
         CustomerID
@@ -155,14 +163,8 @@ const searchRestaurantQuery = gql`
 `;
 
 const restSearchOrderFilterQuery = gql`
-  query RestSearchOrderFilter(
-    $RestaurantID: String
-    $sortOrder: String
-  ) {
-    RestSearchOrderFilter(
-      RestaurantID: $RestaurantID
-      sortOrder: $sortOrder
-    ) {
+  query RestSearchOrderFilter($RestaurantID: String, $sortOrder: String) {
+    RestSearchOrderFilter(RestaurantID: $RestaurantID, sortOrder: $sortOrder) {
       OrderSearchList {
         _id
         RestaurantID
