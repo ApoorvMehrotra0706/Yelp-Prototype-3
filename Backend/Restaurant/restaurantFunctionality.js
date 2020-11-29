@@ -182,7 +182,22 @@ const updateRestProfile = async (req) => {
 
 const updateOrder = async (req) => {
   const res = {};
-  const result = await Orders.updateOne({ _id: req._id }, { ...req });
+  let status = null;
+  let state = 'New';
+  if (req.StatusID === '2') status = 'Preparing';
+  else if (req.StatusID === '3') status = 'On the way';
+  else if (req.StatusID === '4') status = 'Pick up Ready';
+  else if (req.StatusID === '5') {
+    status = 'Delivered';
+    state = 'Delivered';
+  } else if (req.StatusID === '6') {
+    status = 'Picked up';
+    state = 'Delivered';
+  } else {
+    status = 'Canceled';
+    state = 'Canceled';
+  }
+  await Orders.updateOne({ _id: req._id }, { ...req, Status: status, State: state });
   res.Result = 'Updated Order Status';
   return res;
 };
@@ -190,20 +205,12 @@ const updateOrder = async (req) => {
 const restOrderSearchResults = async (req) => {
   const res = {};
   let orderDetails = [];
-  if (req.filter1 !== 'All') {
-    orderDetails = await Orders.find({
-      RestaurantID: req.RestaurantID,
-      DeliveryMode: req.filter1,
-      Status: req.filter2,
-    })
-      .sort({ Date: req.sortOrder })
-      .exec();
+  if (req.sortOrder !== 'All') {
+    orderDetails = await Orders.find({ RestaurantID: req.RestaurantID, State: req.sortOrder });
     res.OrderSearchList = orderDetails;
   } else {
     // eslint-disable-next-line no-unused-vars
-    orderDetails = await Orders.find({ RestaurantID: req.RestaurantID })
-      .sort({ Date: req.sortOrder })
-      .exec();
+    orderDetails = await Orders.find({ RestaurantID: req.RestaurantID });
     res.OrderSearchList = orderDetails;
   }
   return res;

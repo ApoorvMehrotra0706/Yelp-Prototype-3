@@ -9,6 +9,10 @@ import axios from 'axios';
 import serverUrl from '../../config';
 import { connect } from 'react-redux';
 import ReactPaginate from 'react-paginate';
+import { graphql, Query, withApollo } from 'react-apollo';
+import { flowRight as compose } from 'lodash';
+import { restSearchOrderFilterQuery } from '../../query/query';
+import { updateOrder } from '../../mutation/mutation';
 
 class ordersList extends Component {
   constructor(props) {
@@ -18,28 +22,33 @@ class ordersList extends Component {
       popSeen: false,
       popSeen1: false,
       activePage: 1,
-      //ORDERS: [],
-      //orderDetails: [],
-      //customerDetails: [],
-      // customer: [{name: 'apoorv', gender: 'Male', yelpingsince: 'today', contact: '1234'}],
       pageNo: '0',
     };
   }
 
   fetchOrders(sortValue, pageNo = '0') {
-    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-    axios
-      .get(
-        serverUrl + 'restaurant/fetchOrderandDetails',
+    // axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+    // axios
+    //   .get(
+    //     serverUrl + 'restaurant/fetchOrderandDetails',
 
-        {
-          params: { RestaurantID: localStorage.getItem('user_id'), sortValue, pageNo: pageNo },
-          withCredentials: true,
-        }
-      )
+    //     {
+    //       params: { RestaurantID: localStorage.getItem('user_id'), sortValue, pageNo: pageNo },
+    //       withCredentials: true,
+    //     }
+    //   )
+    this.props.client
+      .query({
+        query: restSearchOrderFilterQuery,
+        variables: {
+          RestaurantID: localStorage.getItem('RestaurantID'),
+          sortOrder: sortValue,
+        },
+        fetchPolicy: 'network-only',
+      })
       .then((response) => {
-        console.log(response.data);
-        let allOrders = response.data[0].map((order) => {
+        console.log(response.data.RestSearchOrderFilter.OrderSearchList);
+        let allOrders = response.data.RestSearchOrderFilter.OrderSearchList.map((order) => {
           return {
             ID: order._id,
             CustomerId: order.CustomerID,
@@ -50,8 +59,8 @@ class ordersList extends Component {
             DeliverStatusValue: order.State,
             Bill: order.Bill,
             tmpStatus: order.StatusID,
-            Orders: order.Orders,
-            ImageUrl: order.ImageURL,
+            Orders: order.OrderCartType,
+            // ImageUrl: order.ImageURL,
             Contact: order.CustomerContact,
             Gender: order.CustomerGender,
             YelpingSince: order.CustomerYelpingSince,
@@ -65,9 +74,9 @@ class ordersList extends Component {
         });
         let payload = {
           orderDetails: allOrders,
-          PageCount: response.data[1],
-          TotalCount: response.data[2],
-          pageNo,
+          // PageCount: response.data[1],
+          // TotalCount: response.data[2],
+          // pageNo,
         };
         this.props.updateOrderInfo(payload);
       })
@@ -155,46 +164,28 @@ class ordersList extends Component {
       orderID,
     };
     event.preventDefault();
-    axios.post(serverUrl + 'restaurant/updateDeliveryStatus', data).then(
-      (response) => {
-        console.log('Status Code : ', response.status);
-        if (response.status === 200) {
-          if (localStorage.getItem('orderSortBy') === 'All') {
-            if (newStatus === '7') {
-              if (this.props.orders.TotalCount % 4 === 1) {
-                let payload = {
-                  pageNo: this.props.orders.pageNo - 1,
-                };
-                this.props.updateOrderInfo(payload);
-              }
-            }
+    // axios.post(serverUrl + 'restaurant/updateDeliveryStatus', data)
+    this.props.client
+      .mutate({
+        mutation: updateOrder,
+        variables: {
+          _id: orderID,
+          StatusID: newStatus,
+        },
+      })
+      .then(
+        (response) => {
+          console.log('Status Code : ', response.status);
+          if (response.data.updateOrder.Result === 'Updated Order Status') {
+            this.fetchOrders(localStorage.getItem('orderSortBy'));
           }
-          if (localStorage.getItem('orderSortBy') === 'New') {
-            if (newStatus === '7' || newStatus === '5' || newStatus === '6') {
-              if (this.props.orders.TotalCount % 4 === 1) {
-                let payload = {
-                  pageNo: this.props.orders.pageNo - 1,
-                };
-                this.props.updateOrderInfo(payload);
-              }
-            }
-          }
-          this.fetchOrders(localStorage.getItem('orderSortBy'), this.props.orders.pageNo);
+        },
+        (error) => {
+          console.log(error);
         }
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
+      );
   };
 
-  handlePageClick = (e) => {
-    this.setState({
-      pageNo: e.selected,
-    });
-    let sortValue = localStorage.getItem('orderSortBy');
-    this.fetchOrders(sortValue, e.selected);
-  };
   render() {
     return (
       <div>
@@ -308,4 +299,9 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ordersList);
+export default compose(
+  withApollo,
+  graphql(restSearchOrderFilterQuery, { name: 'restSearchOrderFilterQuery' }),
+  graphql(updateOrder, { name: 'updateOrder' }),
+  connect(mapStateToProps, mapDispatchToProps)
+)(ordersList);

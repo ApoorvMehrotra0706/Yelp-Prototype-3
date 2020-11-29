@@ -603,9 +603,9 @@ const OrdersType = new GraphQLObjectType({
     },
     OrderCartType: {
       type: new GraphQLList(OrderCartType),
-      resolve(parent, args) {
-        return OrderCart.find({ OrderID: parent._id }).exec();
-      },
+      // resolve(parent, args) {
+      //   return OrderCart.find({ OrderID: parent._id }).exec();
+      // },
     },
   }),
 });
@@ -613,6 +613,9 @@ const OrdersType = new GraphQLObjectType({
 const OrderCartType = new GraphQLObjectType({
   name: 'OrderCartType',
   fields: () => ({
+    OrderID: {
+      type: GraphQLString,
+    },
     Dishname: {
       type: GraphQLString,
     },
@@ -1411,7 +1414,7 @@ const Mutation = new GraphQLObjectType({
           type: GraphQLString,
         },
         StatusID: {
-          type: GraphQLInt,
+          type: GraphQLString,
         },
         Status: {
           type: GraphQLString,

@@ -103,6 +103,22 @@ const restaurantProfileQuery = gql`
         Main_Ingredients
         Description
       }
+      Orders {
+        _id
+        CustomerID
+        RestaurantName
+        CustomerName
+        Date
+        Bill
+        OrderCartType {
+          Dishname
+          Price
+          TotalPrice
+          Quantity
+          CustomerID
+          RestaurantID
+        }
+      }
       TotalReviewCount
       TotalRatings
     }
@@ -138,4 +154,47 @@ const searchRestaurantQuery = gql`
   }
 `;
 
-export { staticDataQuery, customerProfileQuery, restaurantProfileQuery, searchRestaurantQuery };
+const restSearchOrderFilterQuery = gql`
+  query RestSearchOrderFilter(
+    $RestaurantID: String
+    $sortOrder: String
+  ) {
+    RestSearchOrderFilter(
+      RestaurantID: $RestaurantID
+      sortOrder: $sortOrder
+    ) {
+      OrderSearchList {
+        _id
+        RestaurantID
+        RestaurantName
+        CustomerID
+        CustomerName
+        CustomerGender
+        CustomerContact
+        CustomerYelpingSince
+        Date
+        Bill
+        DeliveryMode
+        StatusID
+        Status
+        State
+        Address
+        OrderCartType {
+          OrderID
+          Dishname
+          Price
+          Quantity
+          TotalPrice
+          RestaurantID
+        }
+      }
+    }
+  }
+`;
+export {
+  staticDataQuery,
+  customerProfileQuery,
+  restaurantProfileQuery,
+  searchRestaurantQuery,
+  restSearchOrderFilterQuery,
+};

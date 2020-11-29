@@ -316,6 +316,14 @@ const foodCartEntry = gql`
   }
 `;
 
+const updateOrder = gql`
+  mutation($_id: String, $StatusID: String) {
+    updateOrder(_id: $_id, StatusID: $StatusID) {
+      Result
+    }
+  }
+`;
+
 export {
   restSignUp,
   custSignUp,
@@ -330,4 +338,5 @@ export {
   writeReview,
   generateOrder,
   foodCartEntry,
+  updateOrder,
 };
