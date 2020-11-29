@@ -203,9 +203,18 @@ class Navbar extends Component {
         redirectVar = <Redirect to="/RestaurantList" />;
       } else if (this.props.location.pathname === '/RestaurantPage') {
         redirectVar = <Redirect to="/RestaurantPage" />;
-      } else {
-        redirectVar = <Redirect to="/webPage" />;
+      } else if (this.props.location.pathname === '/restaurantProfile') {
+        redirectVar = <Redirect to="/restaurantProfile" />;
+      } else if (this.props.location.pathname === '/restaurantMenu') {
+        redirectVar = <Redirect to="/restaurantMenu" />;
+      } else if (this.props.location.pathname === '/restaurantOrders') {
+        redirectVar = <Redirect to="/restaurantOrders" />;
+      } else if (this.props.location.pathname === '/restaurantReview') {
+        redirectVar = <Redirect to="/restaurantReview" />;
       }
+      // else {
+      //   redirectVar = <Redirect to="/webPage" />;
+      // }
     }
 
     let options = null;
