@@ -18,7 +18,7 @@ const Cuisine = require('../models/CuisineModel');
 const Gender = require('../models/GenderModel');
 
 const geofinder = geocoder({
-  key: 'AIzaSyDHRJvSWfXNenjs51fuPKCvOODQKm2AhQY',
+  key: '',
 });
 
 const fetchStaticData = async (req) => {
